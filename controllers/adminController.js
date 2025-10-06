@@ -191,102 +191,72 @@ export async function createService(req, res) {
   }
 }
 
-// ================= REPORTS =================
-// ================= REPORTS =================
+// ================= SIMPLE REPORTS =================
+// ================= SIMPLE REPORTS =================
 export async function getReports(req, res) {
   try {
-    // Requests by department with percentages
+    console.log("🟢 getReports function started");
+
+    // Simple requests by department
+    console.log("🟢 Running requestsByDept query...");
     const requestsByDept = await pool.query(`
-      SELECT 
-        d.name as department_name,
-        COUNT(r.id) as total_requests,
-        SUM(CASE WHEN r.status='approved' THEN 1 ELSE 0 END) as approved,
-        SUM(CASE WHEN r.status='rejected' THEN 1 ELSE 0 END) as rejected,
-        SUM(CASE WHEN r.status IN ('submitted', 'under_review') THEN 1 ELSE 0 END) as pending,
-        ROUND(COUNT(r.id) * 100.0 / (SELECT COUNT(*) FROM requests), 1) as percentage
+      SELECT d.name as department_name,
+             COUNT(r.id) as total_requests,
+             SUM(CASE WHEN r.status='approved' THEN 1 ELSE 0 END) as approved,
+             SUM(CASE WHEN r.status='rejected' THEN 1 ELSE 0 END) as rejected
       FROM departments d
       LEFT JOIN services s ON s.department_id = d.id
       LEFT JOIN requests r ON r.service_id = s.id
-      GROUP BY d.id, d.name
-      ORDER BY total_requests DESC
+      GROUP BY d.name
+      ORDER BY d.name;
     `);
+    console.log("✅ requestsByDept query successful");
 
-    // Revenue by department
+    // Simple revenue by department
+    console.log("🟢 Running revenueByDept query...");
     const revenueByDept = await pool.query(`
-      SELECT 
-        d.name as department_name,
-        COALESCE(SUM(p.amount), 0) as total_collected,
-        COUNT(p.id) as total_payments
-      FROM departments d
-      LEFT JOIN services s ON s.department_id = d.id
-      LEFT JOIN requests r ON r.service_id = s.id
-      LEFT JOIN payments p ON p.request_id = r.id
-      GROUP BY d.id, d.name
-      ORDER BY total_collected DESC
+      SELECT d.name as department_name,
+             SUM(p.amount) as total_collected
+      FROM payments p
+      JOIN requests r ON r.id = p.request_id
+      JOIN services s ON s.id = r.service_id
+      JOIN departments d ON d.id = s.department_id
+      GROUP BY d.name
+      ORDER BY d.name;
     `);
+    console.log("✅ revenueByDept query successful");
 
-    // Monthly trends (last 6 months)
-    const monthlyTrends = await pool.query(`
-      SELECT 
-        TO_CHAR(date_trunc('month', r.created_at), 'Mon YYYY') as month,
-        COUNT(*) as total_requests,
-        SUM(CASE WHEN r.status='approved' THEN 1 ELSE 0 END) as approved,
-        SUM(CASE WHEN r.status='rejected' THEN 1 ELSE 0 END) as rejected
-      FROM requests r
-      WHERE r.created_at >= date_trunc('month', CURRENT_DATE - INTERVAL '5 months')
-      GROUP BY date_trunc('month', r.created_at)
-      ORDER BY date_trunc('month', r.created_at)
-    `);
-
-    // Service popularity
-    const servicePopularity = await pool.query(`
-      SELECT 
-        s.name as service_name,
-        d.name as department_name,
-        COUNT(r.id) as request_count,
-        ROUND(COUNT(r.id) * 100.0 / (SELECT COUNT(*) FROM requests), 1) as percentage
-      FROM services s
-      JOIN departments d ON s.department_id = d.id
-      LEFT JOIN requests r ON r.service_id = s.id
-      GROUP BY s.id, s.name, d.name
-      ORDER BY request_count DESC
-      LIMIT 10
-    `);
-
-    // Overall stats
+    // Total stats
+    console.log("🟢 Running total stats queries...");
     const totalRequests = await pool.query("SELECT COUNT(*) FROM requests");
-    const approvedRequests = await pool.query("SELECT COUNT(*) FROM requests WHERE status='approved'");
-    const rejectedRequests = await pool.query("SELECT COUNT(*) FROM requests WHERE status='rejected'");
-    const pendingRequests = await pool.query("SELECT COUNT(*) FROM requests WHERE status IN ('submitted', 'under_review')");
-    const totalRevenue = await pool.query("SELECT COALESCE(SUM(amount), 0) FROM payments");
-    const totalUsers = await pool.query("SELECT COUNT(*) FROM users");
+    const approvedRequests = await pool.query(
+      "SELECT COUNT(*) FROM requests WHERE status='approved'"
+    );
+    const rejectedRequests = await pool.query(
+      "SELECT COUNT(*) FROM requests WHERE status='rejected'"
+    );
+    const totalRevenue = await pool.query(
+      "SELECT COALESCE(SUM(amount), 0) FROM payments"
+    );
+    console.log("✅ All stats queries successful");
 
+    console.log("🟢 Rendering reports page...");
     res.render("admin/reports", {
-      title: "Enhanced System Reports",
+      title: "System Reports",
       reports: {
-        // Overall stats
         totalRequests: parseInt(totalRequests.rows[0].count),
         approvedRequests: parseInt(approvedRequests.rows[0].count),
         rejectedRequests: parseInt(rejectedRequests.rows[0].count),
-        pendingRequests: parseInt(pendingRequests.rows[0].count),
         totalRevenue: parseFloat(totalRevenue.rows[0].coalesce) || 0,
-        totalUsers: parseInt(totalUsers.rows[0].count),
-        
-        // Chart data
         requestsByDepartment: requestsByDept.rows,
         revenueByDepartment: revenueByDept.rows,
-        monthlyTrends: monthlyTrends.rows,
-        servicePopularity: servicePopularity.rows,
-        
-        // Approval rate 
-        approvalRate: totalRequests.rows[0].count > 0 
-          ? Math.round((approvedRequests.rows[0].count / totalRequests.rows[0].count) * 100)
-          : 0
-      }
+      },
     });
+    console.log("✅ Reports page rendered successfully");
   } catch (err) {
-    console.error("❌ Error in getReports:", err.message);
-    res.status(500).send("Server error");
+    console.error("❌ ERROR in getReports:", err.message);
+    console.error("❌ Full error:", err);
+    res.status(500).send("Server error: " + err.message);
   }
 }
 

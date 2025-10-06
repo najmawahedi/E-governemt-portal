@@ -6,6 +6,9 @@ import { fileURLToPath } from "url";
 import expressLayouts from "express-ejs-layouts";
 import citizenRoutes from "./routes/citizenRoutes.js";
 import session from "express-session";
+import pgSession from "connect-pg-simple";
+import pool from "./config/db.js";
+
 // Import API routes
 import authRoutes from "./routes/auth.js";
 import profileRoutes from "./routes/profileRoutes.js";
@@ -16,6 +19,7 @@ import notificationsRoutes from "./routes/notificationsRoutes.js";
 import officerRoutes from "./routes/officerRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import deptHeadRoutes from "./routes/dept-headRoutes.js";
+
 dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -36,12 +40,22 @@ app.set("layout", "layout"); // default layout file = views/layout.ejs
 
 // ✅ Serve static files (CSS, JS, images)
 app.use(express.static(path.join(__dirname, "public")));
+
+// ✅ Session configuration (FIXED for production)
+const PostgresSessionStore = pgSession(session);
 app.use(
   session({
+    store: new PostgresSessionStore({
+      pool: pool,
+      tableName: "session",
+    }),
     secret: process.env.SESSION_SECRET || "please_change_this_secret",
     resave: false,
     saveUninitialized: false,
-    cookie: { secure: false }, // change to true when using HTTPS
+    cookie: {
+      secure: process.env.NODE_ENV === "production", // true in production
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    },
   })
 );
 
@@ -54,9 +68,12 @@ app.use("/requests", requestsRoutes);
 app.use("/api", documentRoutes);
 app.use("/payments", paymentRoutes);
 app.use("/notifications", notificationsRoutes);
+
+// Serve uploads folder
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+// Mount admin and department head routes
 app.use("/admin", adminRoutes);
-app.use("/dept-head", deptHeadRoutes);
 
 // =======================
 // ✅ FRONTEND ROUTES (EJS)
@@ -80,14 +97,9 @@ app.get("/register", (req, res) => {
   res.render("auth/register", { title: "Register" });
 });
 
-// ✅ Citizen pages (dashboard, apply, track, notifications)
+// ✅ Citizen and Officer routes
 app.use("/citizen", citizenRoutes);
-app.use("/officer", officerRoutes); // <--- MOUNT OFFICER ROUTES
-
-// Officer dashboard (example)
-app.get("/officer/dashboard", (req, res) => {
-  res.render("officer/dashboard", { title: "Officer Dashboard" });
-});
+app.use("/officer", officerRoutes);
 
 // =======================
 // ✅ LOGOUT ROUTE
@@ -102,14 +114,41 @@ app.get("/logout", (req, res) => {
   });
 });
 
-// Admin dashboard
-// app.get("/admin/dashboard", (req, res) => {
-//   res.render("admin/dashboard", { title: "Admin Dashboard" });
-// });
+// =======================
+// ✅ ERROR HANDLING
+// =======================
+
+// 404 handler
+// =======================
+// ✅ ERROR HANDLING
+// =======================
+
+// 404 handler
+app.use((req, res) => {
+  res.status(404).render("error", {
+    title: "Page Not Found",
+    message: "The page you're looking for doesn't exist.",
+  });
+});
+
+// Error handler
+app.use((err, req, res, next) => {
+  console.error("❌ Server error:", err);
+  res.status(500).render("error", {
+    title: "Server Error",
+    message: "Something went wrong. Please try again later.",
+  });
+});
 
 // =======================
 // ✅ START SERVER
 // =======================
-app.listen(PORT, () =>
-  console.log(`🚀 Server running on http://localhost:${PORT}`)
-);
+app.listen(PORT, () => {
+  console.log(
+    `🚀 Server running in ${process.env.NODE_ENV || "development"} mode`
+  );
+  console.log(`📍 Local: http://localhost:${PORT}`);
+  if (process.env.NODE_ENV === "production") {
+    console.log(`🌐 Production: Check your Render dashboard for the live URL`);
+  }
+});

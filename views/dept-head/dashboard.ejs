@@ -45,28 +45,29 @@
       </div>
       <div class="card-body">
         <% if (recentRequests.length === 0) { %>
-          <p class="text-muted">No recent requests</p>
+        <p class="text-muted">No recent requests</p>
         <% } else { %>
-          <div class="list-group">
-            <% recentRequests.forEach(req => { %>
-              <div class="list-group-item">
-                <div class="d-flex w-100 justify-content-between">
-                  <h6 class="mb-1"><%= req.service_name %></h6>
-                  <small>
-                    <span class="badge 
-                      <% if (req.status === 'approved') { %>bg-success<% } %>
-                      <% if (req.status === 'rejected') { %>bg-danger<% } %>
-                      <% if (req.status === 'submitted' || req.status === 'under_review') { %>bg-warning<% } %>
-                    ">
-                      <%= req.status %>
-                    </span>
-                  </small>
-                </div>
-                <p class="mb-1">Citizen: <%= req.citizen_name %></p>
-                <small class="text-muted">Submitted: <%= new Date(req.created_at).toLocaleDateString() %></small>
-              </div>
-            <% }) %>
+        <div class="list-group">
+          <% recentRequests.forEach(req => { %>
+          <div class="list-group-item">
+            <div class="d-flex w-100 justify-content-between">
+              <h6 class="mb-1"><%= req.service_name %></h6>
+              <small>
+                <span
+                  class="badge <% if (req.status === 'approved') { %>bg-success<% } %> <% if (req.status === 'rejected') { %>bg-danger<% } %> <% if (req.status === 'submitted' || req.status === 'under_review') { %>bg-warning<% } %>"
+                >
+                  <%= req.status %>
+                </span>
+              </small>
+            </div>
+            <p class="mb-1">Citizen: <%= req.citizen_name %></p>
+            <small class="text-muted"
+              >Submitted: <%= new Date(req.created_at).toLocaleDateString()
+              %></small
+            >
           </div>
+          <% }) %>
+        </div>
         <% } %>
       </div>
     </div>
@@ -101,17 +102,20 @@
       </div>
       <div class="card-body">
         <% if (officers.length === 0) { %>
-          <p class="text-muted">No officers in your department</p>
+        <p class="text-muted">No officers in your department</p>
         <% } else { %>
-          <div class="list-group">
-            <% officers.forEach(officer => { %>
-              <div class="list-group-item">
-                <h6 class="mb-1"><%= officer.name %></h6>
-                <p class="mb-1 text-muted"><%= officer.email %></p>
-                <small>Joined: <%= new Date(officer.created_at).toLocaleDateString() %></small>
-              </div>
-            <% }) %>
+        <div class="list-group">
+          <% officers.forEach(officer => { %>
+          <div class="list-group-item">
+            <h6 class="mb-1"><%= officer.name %></h6>
+            <p class="mb-1 text-muted"><%= officer.email %></p>
+            <small
+              >Joined: <%= new Date(officer.created_at).toLocaleDateString()
+              %></small
+            >
           </div>
+          <% }) %>
+        </div>
         <% } %>
       </div>
     </div>

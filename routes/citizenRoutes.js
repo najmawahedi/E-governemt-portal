@@ -8,20 +8,33 @@ import {
 } from "../controllers/citizenController.js";
 import multer from "multer";
 import path from "path";
-import pool from "../config/db.js"; 
+import pool from "../config/db.js";
+import fs from "fs";
 
 const router = express.Router();
+
+// ✅ Ensure uploads directory exists
+const uploadsDir = path.join(process.cwd(), "uploads");
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
 
 // Setup multer for document upload
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, "uploads/"); // make sure this folder exists
+    cb(null, uploadsDir);
   },
   filename: function (req, file, cb) {
     cb(null, Date.now() + path.extname(file.originalname));
   },
 });
-const upload = multer({ storage: storage });
+
+const upload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB limit
+  },
+});
 
 // Dashboard home
 router.get("/dashboard", dashboardPage);
@@ -34,18 +47,19 @@ router.post("/apply", upload.array("documents"), submitServiceRequest);
 router.get("/track", trackRequests);
 
 // Notifications
-// In citizenRoutes.js - update the notifications route:
 router.get("/notifications", async (req, res) => {
   try {
     const { citizen_id, name } = req.query;
 
     if (!citizen_id || !name) {
-      return res.status(400).send("Missing citizen information. Please login again.");
+      return res.status(400).render("error", {
+        title: "Missing Information",
+        message: "Please login again to view notifications.",
+      });
     }
 
-    // Fetch notifications from database - use user_id column
     const notifications = await pool.query(
-      "SELECT * FROM notifications WHERE user_id = $1 ORDER BY created_at DESC",  // ✅ Use user_id
+      "SELECT * FROM notifications WHERE user_id = $1 ORDER BY created_at DESC",
       [citizen_id]
     );
 
@@ -54,8 +68,11 @@ router.get("/notifications", async (req, res) => {
       user: { id: citizen_id, name },
     });
   } catch (err) {
-    console.error("❌ Error in notifications page:", err.message);
-    res.status(500).send("Server error");
+    console.error("❌ Error in notifications route:", err.message);
+    res.status(500).render("error", {
+      title: "Server Error",
+      message: "Failed to load notifications. Please try again.",
+    });
   }
 });
 

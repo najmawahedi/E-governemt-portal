@@ -1,8 +1,7 @@
-<h2>Enhanced System Reports</h2>
+<h2>System Reports</h2>
 
-<!-- Overall Stats Cards -->
 <div class="row mb-4">
-  <div class="col-md-2">
+  <div class="col-md-3">
     <div class="card text-white bg-primary">
       <div class="card-body text-center">
         <h5>Total Requests</h5>
@@ -10,16 +9,15 @@
       </div>
     </div>
   </div>
-  <div class="col-md-2">
+  <div class="col-md-3">
     <div class="card text-white bg-success">
       <div class="card-body text-center">
         <h5>Approved</h5>
         <h3><%= reports.approvedRequests %></h3>
-        <small><%= reports.approvalRate %>% Rate</small>
       </div>
     </div>
   </div>
-  <div class="col-md-2">
+  <div class="col-md-3">
     <div class="card text-white bg-danger">
       <div class="card-body text-center">
         <h5>Rejected</h5>
@@ -27,15 +25,7 @@
       </div>
     </div>
   </div>
-  <div class="col-md-2">
-    <div class="card text-white bg-warning">
-      <div class="card-body text-center">
-        <h5>Pending</h5>
-        <h3><%= reports.pendingRequests %></h3>
-      </div>
-    </div>
-  </div>
-  <div class="col-md-2">
+  <div class="col-md-3">
     <div class="card text-white bg-info">
       <div class="card-body text-center">
         <h5>Total Revenue</h5>
@@ -43,254 +33,70 @@
       </div>
     </div>
   </div>
-  <div class="col-md-2">
-    <div class="card text-white bg-secondary">
-      <div class="card-body text-center">
-        <h5>Total Users</h5>
-        <h3><%= reports.totalUsers %></h3>
-      </div>
-    </div>
-  </div>
 </div>
 
-<!-- Charts Section -->
 <div class="row">
-  <!-- Requests by Department Chart -->
   <div class="col-md-6">
     <div class="card">
       <div class="card-header">
         <h5>Requests by Department</h5>
       </div>
       <div class="card-body">
-        <canvas id="deptRequestsChart" width="400" height="300"></canvas>
-      </div>
-    </div>
-  </div>
-
-  <!-- Monthly Trends Chart -->
-  <div class="col-md-6">
-    <div class="card">
-      <div class="card-header">
-        <h5>Monthly Request Trends</h5>
-      </div>
-      <div class="card-body">
-        <canvas id="monthlyTrendsChart" width="400" height="300"></canvas>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="row mt-4">
-  <!-- Revenue by Department -->
-  <div class="col-md-6">
-    <div class="card">
-      <div class="card-header">
-        <h5>Revenue by Department</h5>
-      </div>
-      <div class="card-body">
-        <canvas id="revenueChart" width="400" height="300"></canvas>
-      </div>
-    </div>
-  </div>
-
-  <!-- Service Popularity -->
-  <div class="col-md-6">
-    <div class="card">
-      <div class="card-header">
-        <h5>Most Popular Services</h5>
-      </div>
-      <div class="card-body">
-        <canvas id="servicePopularityChart" width="400" height="300"></canvas>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Detailed Tables -->
-<div class="row mt-4">
-  <div class="col-md-6">
-    <div class="card">
-      <div class="card-header">
-        <h5>Department Performance</h5>
-      </div>
-      <div class="card-body">
-        <div class="table-responsive">
-          <table class="table table-sm table-striped">
-            <thead>
-              <tr>
-                <th>Department</th>
-                <th>Total</th>
-                <th>Approved</th>
-                <th>Rejected</th>
-                <th>Pending</th>
-                <th>% of Total</th>
-              </tr>
-            </thead>
-            <tbody>
+        <table class="table table-sm table-striped">
+          <thead>
+            <tr>
+              <th>Department</th>
+              <th>Total</th>
+              <th>Approved</th>
+              <th>Rejected</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (!reports.requestsByDepartment || reports.requestsByDepartment.length === 0) { %>
+              <tr><td colspan="4">No data available</td></tr>
+            <% } else { %>
               <% reports.requestsByDepartment.forEach(dept => { %>
                 <tr>
                   <td><%= dept.department_name %></td>
                   <td><%= dept.total_requests %></td>
                   <td class="text-success"><%= dept.approved %></td>
                   <td class="text-danger"><%= dept.rejected %></td>
-                  <td class="text-warning"><%= dept.pending %></td>
-                  <td><%= dept.percentage %>%</td>
                 </tr>
               <% }) %>
-            </tbody>
-          </table>
-        </div>
+            <% } %>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
-
+  
   <div class="col-md-6">
     <div class="card">
       <div class="card-header">
-        <h5>Service Popularity</h5>
+        <h5>Revenue by Department</h5>
       </div>
       <div class="card-body">
-        <div class="table-responsive">
-          <table class="table table-sm table-striped">
-            <thead>
-              <tr>
-                <th>Service</th>
-                <th>Department</th>
-                <th>Requests</th>
-                <th>% of Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              <% reports.servicePopularity.forEach(service => { %>
+        <table class="table table-sm table-striped">
+          <thead>
+            <tr>
+              <th>Department</th>
+              <th>Total Revenue</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (!reports.revenueByDepartment || reports.revenueByDepartment.length === 0) { %>
+              <tr><td colspan="2">No revenue data</td></tr>
+            <% } else { %>
+              <% reports.revenueByDepartment.forEach(dept => { %>
                 <tr>
-                  <td><%= service.service_name %></td>
-                  <td><%= service.department_name %></td>
-                  <td><%= service.request_count %></td>
-                  <td><%= service.percentage %>%</td>
+                  <td><%= dept.department_name %></td>
+                  <td>$<%= dept.total_collected || 0 %></td>
                 </tr>
               <% }) %>
-            </tbody>
-          </table>
-        </div>
+            <% } %>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
 </div>
-
-<!-- Add Chart.js -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-<script>
-// Prepare data for charts
-const deptData = {
-  labels: [<%= reports.requestsByDepartment.map(d => `"${d.department_name}"`).join(', ') %>],
-  datasets: [
-    {
-      label: 'Approved',
-      data: [<%= reports.requestsByDepartment.map(d => d.approved).join(', ') %>],
-      backgroundColor: '#28a745'
-    },
-    {
-      label: 'Rejected',
-      data: [<%= reports.requestsByDepartment.map(d => d.rejected).join(', ') %>],
-      backgroundColor: '#dc3545'
-    },
-    {
-      label: 'Pending',
-      data: [<%= reports.requestsByDepartment.map(d => d.pending).join(', ') %>],
-      backgroundColor: '#ffc107'
-    }
-  ]
-};
-
-const monthlyData = {
-  labels: [<%= reports.monthlyTrends.map(m => `"${m.month}"`).join(', ') %>],
-  datasets: [
-    {
-      label: 'Total Requests',
-      data: [<%= reports.monthlyTrends.map(m => m.total_requests).join(', ') %>],
-      borderColor: '#007bff',
-      backgroundColor: 'rgba(0, 123, 255, 0.1)',
-      fill: true
-    }
-  ]
-};
-
-const revenueData = {
-  labels: [<%= reports.revenueByDepartment.map(d => `"${d.department_name}"`).join(', ') %>],
-  datasets: [{
-    label: 'Revenue Collected',
-    data: [<%= reports.revenueByDepartment.map(d => d.total_collected).join(', ') %>],
-    backgroundColor: [
-      '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', 
-      '#9966FF', '#FF9F40', '#FF6384', '#C9CBCF'
-    ]
-  }]
-};
-
-const serviceData = {
-  labels: [<%= reports.servicePopularity.map(s => `"${s.service_name}"`).join(', ') %>],
-  datasets: [{
-    label: 'Number of Requests',
-    data: [<%= reports.servicePopularity.map(s => s.request_count).join(', ') %>],
-    backgroundColor: [
-      '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', 
-      '#9966FF', '#FF9F40', '#FF6384', '#C9CBCF',
-      '#FF6384', '#36A2EB'
-    ]
-  }]
-};
-
-// Initialize charts when page loads
-document.addEventListener('DOMContentLoaded', function() {
-  // Department Requests Chart (Stacked Bar)
-  new Chart(document.getElementById('deptRequestsChart'), {
-    type: 'bar',
-    data: deptData,
-    options: {
-      responsive: true,
-      scales: {
-        x: { stacked: true },
-        y: { stacked: true }
-      }
-    }
-  });
-
-  // Monthly Trends Chart (Line)
-  new Chart(document.getElementById('monthlyTrendsChart'), {
-    type: 'line',
-    data: monthlyData,
-    options: {
-      responsive: true,
-      scales: {
-        y: { beginAtZero: true }
-      }
-    }
-  });
-
-  // Revenue Chart (Doughnut)
-  new Chart(document.getElementById('revenueChart'), {
-    type: 'doughnut',
-    data: revenueData,
-    options: {
-      responsive: true,
-      plugins: {
-        legend: { position: 'bottom' }
-      }
-    }
-  });
-
-  // Service Popularity Chart (Bar)
-  new Chart(document.getElementById('servicePopularityChart'), {
-    type: 'bar',
-    data: serviceData,
-    options: {
-      responsive: true,
-      indexAxis: 'y',
-      scales: {
-        x: { beginAtZero: true }
-      }
-    }
-  });
-});
-</script>

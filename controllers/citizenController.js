@@ -1,5 +1,6 @@
 import pool from "../config/db.js";
 import path from "path";
+import fs from "fs";
 
 // ------------------------
 // DASHBOARD
@@ -42,8 +43,11 @@ export async function applyServicePage(req, res) {
       user: { id: citizen_id, name },
     });
   } catch (err) {
-    console.error(err.message);
-    res.send("Server error");
+    console.error("❌ Error in applyServicePage:", err.message);
+    res.status(500).render("error", {
+      title: "Server Error",
+      message: "Failed to load services. Please try again.",
+    });
   }
 }
 
@@ -55,7 +59,16 @@ export async function submitServiceRequest(req, res) {
     const { citizen_id, service_id, name, ...extraFields } = req.body;
 
     if (!citizen_id || !name || !service_id) {
-      return res.status(400).send("Missing required data");
+      return res.status(400).render("error", {
+        title: "Missing Information",
+        message: "Please fill in all required fields.",
+      });
+    }
+
+    // ✅ Ensure uploads directory exists
+    const uploadsDir = path.join(process.cwd(), "uploads");
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir, { recursive: true });
     }
 
     const result = await pool.query(
@@ -66,19 +79,17 @@ export async function submitServiceRequest(req, res) {
 
     const requestId = result.rows[0].id;
 
-    // Save uploaded files - FIXED: Save only filename
-    // Save uploaded files - FIXED: Save only filename
+    // Save uploaded files
     if (req.files && req.files.length > 0) {
       for (const file of req.files) {
-        // ✅ This should be just the filename like "1759468251395.jpg"
         const fileName = file.filename;
 
         await pool.query(
           `INSERT INTO documents (request_id, file_path, original_file_name, file_type) 
-       VALUES ($1, $2, $3, $4)`,
+           VALUES ($1, $2, $3, $4)`,
           [
             requestId,
-            fileName, // ✅ Save only filename
+            fileName,
             file.originalname,
             path.extname(file.originalname).substring(1),
           ]
@@ -91,7 +102,10 @@ export async function submitServiceRequest(req, res) {
     );
   } catch (err) {
     console.error("❌ Error in submitServiceRequest:", err.message);
-    res.send("Server error");
+    res.status(500).render("error", {
+      title: "Application Failed",
+      message: "Failed to submit your application. Please try again.",
+    });
   }
 }
 
@@ -123,8 +137,11 @@ export async function trackRequests(req, res) {
       user: { id: citizen_id, name },
     });
   } catch (err) {
-    console.error(err.message);
-    res.send("Server error");
+    console.error("❌ Error in trackRequests:", err.message);
+    res.status(500).render("error", {
+      title: "Server Error",
+      message: "Failed to load your requests. Please try again.",
+    });
   }
 }
 
@@ -151,7 +168,10 @@ export async function notificationsPage(req, res) {
       user: { id: citizen_id, name },
     });
   } catch (err) {
-    console.error(err.message);
-    res.send("Server error");
+    console.error("❌ Error in notificationsPage:", err.message);
+    res.status(500).render("error", {
+      title: "Server Error",
+      message: "Failed to load notifications. Please try again.",
+    });
   }
 }
