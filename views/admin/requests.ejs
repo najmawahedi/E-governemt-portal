@@ -1,0 +1,75 @@
+<h2>All System Requests</h2>
+
+<div class="card mb-4">
+  <div class="card-body">
+    <form method="GET" action="/admin/requests">
+      <div class="row">
+        <div class="col-md-3">
+          <label class="form-label">Citizen Name</label>
+          <input type="text" class="form-control" name="citizen_name" value="<%= searchParams.citizen_name || '' %>">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Request ID</label>
+          <input type="number" class="form-control" name="request_id" value="<%= searchParams.request_id || '' %>">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Status</label>
+          <select class="form-select" name="status">
+            <option value="">All Status</option>
+            <option value="submitted" <%= searchParams.status === 'submitted' ? 'selected' : '' %>>Submitted</option>
+            <option value="under_review" <%= searchParams.status === 'under_review' ? 'selected' : '' %>>Under Review</option>
+            <option value="approved" <%= searchParams.status === 'approved' ? 'selected' : '' %>>Approved</option>
+            <option value="rejected" <%= searchParams.status === 'rejected' ? 'selected' : '' %>>Rejected</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Department</label>
+          <select class="form-select" name="department_id">
+            <option value="">All Departments</option>
+            <% departments.forEach(dept => { %>
+              <option value="<%= dept.id %>" <%= searchParams.department_id == dept.id ? 'selected' : '' %>>
+                <%= dept.name %>
+              </option>
+            <% }) %>
+          </select>
+        </div>
+        <div class="col-md-2 d-flex align-items-end">
+          <button type="submit" class="btn btn-primary w-100">Filter</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Citizen</th>
+      <th>Service</th>
+      <th>Department</th>
+      <th>Status</th>
+      <th>Submitted</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% if (!requests || requests.length === 0) { %>
+      <tr><td colspan="7">No requests found</td></tr>
+    <% } else { %>
+      <% requests.forEach(r => { %>
+        <tr>
+          <td><%= r.id %></td>
+          <td><%= r.citizen_name %></td>
+          <td><%= r.service_name %></td>
+          <td><%= r.department_name %></td>
+          <td><span class="badge bg-<%= r.status === 'approved' ? 'success' : r.status === 'rejected' ? 'danger' : 'warning' %>"><%= r.status %></span></td>
+          <td><%= new Date(r.created_at).toLocaleDateString() %></td>
+          <td>
+            <a href="/officer/requests/<%= r.id %>" class="btn btn-sm btn-primary">View</a>
+          </td>
+        </tr>
+      <% }) %>
+    <% } %>
+  </tbody>
+</table>

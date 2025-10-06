@@ -1,0 +1,104 @@
+<h2>Apply for a Service</h2>
+
+<form method="POST" action="/citizen/apply" enctype="multipart/form-data">
+  <input type="hidden" name="citizen_id" value="<%= user.id %>">
+  <input type="hidden" name="name" value="<%= user.name %>">
+
+  <!-- Service dropdown -->
+  <div class="mb-3">
+    <label for="service" class="form-label">Select Service</label>
+    <select name="service_id" id="service" class="form-select" required>
+      <% services.forEach(s => { %>
+        <option value="<%= s.id %>">
+          <%= s.department %> - <%= s.name %> (Fee: $<%= s.fee %>)
+        </option>
+      <% }) %>
+    </select>
+  </div>
+
+  <!-- Service details -->
+  <div id="service-details" class="alert alert-info" style="display:none;">
+    <h5 id="service-title"></h5>
+    <p id="service-description"></p>
+    <p><strong>Fee:</strong> $<span id="service-fee"></span></p>
+  </div>
+
+  <!-- Extra fields -->
+  <div id="service-extra-fields"></div>
+
+  <!-- File upload -->
+  <div class="mb-3">
+    <label for="documents" class="form-label">Upload Documents</label>
+    <input type="file" name="documents" id="documents" multiple class="form-control" required>
+  </div>
+
+  <button type="submit" class="btn btn-primary">Submit Request</button>
+</form>
+
+<!-- Inject services JSON safely -->
+<script id="services-data" type="application/json">
+  <%- JSON.stringify(services) %>
+</script>
+
+<script>
+  // Load JSON from script tag
+  const services = JSON.parse(
+    document.getElementById("services-data").textContent
+  );
+
+  const serviceSelect = document.getElementById("service");
+  const detailsBox = document.getElementById("service-details");
+  const titleEl = document.getElementById("service-title");
+  const descEl = document.getElementById("service-description");
+  const feeEl = document.getElementById("service-fee");
+  const extraFieldsDiv = document.getElementById("service-extra-fields");
+
+  function renderExtraFields(service) {
+    extraFieldsDiv.innerHTML = "";
+    if (!service || !service.required_fields) return;
+
+    let fields = service.required_fields;
+    if (typeof fields === "string") {
+      try {
+        fields = JSON.parse(fields);
+      } catch {
+        fields = [];
+      }
+    }
+
+    fields.forEach(field => {
+      const div = document.createElement("div");
+      div.classList.add("mb-3");
+
+      const label = document.createElement("label");
+      label.classList.add("form-label");
+      label.textContent = field.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase());
+
+      const input = document.createElement("input");
+      input.type = "text";
+      input.name = field;
+      input.classList.add("form-control");
+      input.required = true;
+
+      div.appendChild(label);
+      div.appendChild(input);
+      extraFieldsDiv.appendChild(div);
+    });
+  }
+
+  function updateServiceDetails() {
+    const selected = services.find(s => s.id == serviceSelect.value);
+    if (selected) {
+      titleEl.textContent = `${selected.name} (${selected.department})`;
+      descEl.textContent = selected.description || "No description available.";
+      feeEl.textContent = selected.fee || 0;
+      detailsBox.style.display = "block";
+      renderExtraFields(selected);
+    } else {
+      detailsBox.style.display = "none";
+    }
+  }
+
+  serviceSelect.addEventListener("change", updateServiceDetails);
+  updateServiceDetails(); // trigger on page load
+</script>

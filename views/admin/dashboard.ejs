@@ -1,0 +1,87 @@
+<h2>Admin Dashboard</h2>
+
+<!-- Stats Cards -->
+<div class="row mb-4">
+  <div class="col-md-3">
+    <div class="card text-white bg-primary">
+      <div class="card-body">
+        <h5>Total Users</h5>
+        <h3><%= stats.totalUsers || 0 %></h3>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card text-white bg-success">
+      <div class="card-body">
+        <h5>Total Requests</h5>
+        <h3><%= stats.totalRequests || 0 %></h3>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card text-white bg-warning">
+      <div class="card-body">
+        <h5>Pending Requests</h5>
+        <h3><%= stats.pendingRequests || 0 %></h3>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card text-white bg-info">
+      <div class="card-body">
+        <h5>Total Revenue</h5>
+        <h3>$<%= stats.totalRevenue || 0 %></h3>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="card mb-4">
+  <div class="card-header">
+    <h5>Quick Actions</h5>
+  </div>
+  <div class="card-body">
+    <a href="/admin/users" class="btn btn-primary me-2">Manage Users</a>
+    <a href="/admin/departments" class="btn btn-secondary me-2">Manage Departments</a>
+    <a href="/admin/services" class="btn btn-success me-2">Manage Services</a>
+    <a href="/admin/reports" class="btn btn-info">View Reports</a>
+  </div>
+</div>
+
+<!-- Recent Activity -->
+<div class="card">
+  <div class="card-header">
+    <h5>Recent Requests</h5>
+  </div>
+  <div class="card-body">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Citizen</th>
+          <th>Service</th>
+          <th>Department</th>
+          <th>Status</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (!recentRequests || recentRequests.length === 0) { %>
+          <tr><td colspan="6">No recent requests</td></tr>
+        <% } else { %>
+          <% recentRequests.forEach(req => { %>
+            <tr>
+              <td><%= req.id %></td>
+              <td><%= req.citizen_name %></td>
+              <td><%= req.service_name %></td>
+              <td><%= req.department_name %></td>
+              <td><span class="badge bg-<%= req.status === 'approved' ? 'success' : req.status === 'rejected' ? 'danger' : 'warning' %>"><%= req.status %></span></td>
+              <td><%= new Date(req.created_at).toLocaleDateString() %></td>
+            </tr>
+          <% }) %>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</div>

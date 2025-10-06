@@ -1,0 +1,8 @@
+<h2>Notifications</h2>
+<ul class="list-group">
+  <% notifications.forEach(n => { %>
+    <li class="list-group-item <%= n.is_read ? '' : 'fw-bold' %>">
+      <%= n.message %> - <small><%= n.created_at.toLocaleString() %></small>
+    </li>
+  <% }) %>
+</ul>

@@ -1,0 +1,28 @@
+<h2>Payment Successful! ✅</h2>
+
+<div class="alert alert-success">
+  <h4>Thank you for your payment!</h4>
+  <p>Your payment has been processed successfully.</p>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <h5>Payment Details</h5>
+    <p><strong>Service:</strong> <%= paymentDetails.service_name %></p>
+    <p><strong>Amount Paid:</strong> $<%= paymentDetails.amount %></p>
+    <p><strong>Payment ID:</strong> #<%= paymentDetails.payment_id %></p>
+    <p><strong>Request ID:</strong> #<%= paymentDetails.request_id %></p>
+    <p><strong>Date:</strong> <%= new Date().toLocaleString() %></p>
+  </div>
+</div>
+
+<div class="mt-4">
+  <a href="/citizen/track?citizen_id=<%= user.id %>&name=<%= encodeURIComponent(user.name) %>" 
+     class="btn btn-primary">
+    View My Requests
+  </a>
+  <a href="/citizen/dashboard?citizen_id=<%= user.id %>&name=<%= encodeURIComponent(user.name) %>" 
+     class="btn btn-secondary">
+    Back to Dashboard
+  </a>
+</div>

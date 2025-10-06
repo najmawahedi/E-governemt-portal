@@ -1,0 +1,60 @@
+<h2>Edit User: <%= user.name %></h2>
+
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <% if (typeof error !== 'undefined') { %>
+      <div class="alert alert-danger"><%= error %></div>
+    <% } %>
+    
+    <form method="POST" action="/admin/users/<%= user.id %>/edit">
+      <div class="mb-3">
+        <label class="form-label">Full Name</label>
+        <input type="text" class="form-control" name="name" value="<%= user.name %>" required>
+      </div>
+      
+      <div class="mb-3">
+        <label class="form-label">Email</label>
+        <input type="email" class="form-control" name="email" value="<%= user.email %>" required>
+      </div>
+      
+      <% if (user.role === 'officer' || user.role === 'department_head') { %>
+        <div class="mb-3">
+          <label class="form-label">Department</label>
+          <select class="form-select" name="department_id" required>
+            <option value="">Select Department</option>
+            <% departments.forEach(dept => { %>
+              <option value="<%= dept.id %>" <%= user.department_id == dept.id ? 'selected' : '' %>>
+                <%= dept.name %>
+              </option>
+            <% }) %>
+          </select>
+        </div>
+        
+        <div class="mb-3">
+          <label class="form-label">Job Title</label>
+          <input type="text" class="form-control" name="job_title" value="<%= user.job_title || '' %>">
+        </div>
+      <% } else if (user.role === 'citizen') { %>
+        <div class="mb-3">
+          <label class="form-label">Department</label>
+          <input type="text" class="form-control" value="N/A (Citizen)" readonly>
+          <small class="text-muted">Citizens don't belong to departments</small>
+        </div>
+      <% } else if (user.role === 'admin') { %>
+        <div class="mb-3">
+          <label class="form-label">Department</label>
+          <input type="text" class="form-control" value="System Administrator" readonly>
+        </div>
+      <% } %>
+      
+      <div class="mb-3">
+        <label class="form-label">Role</label>
+        <input type="text" class="form-control" value="<%= user.role %>" readonly>
+        <small class="text-muted">Role cannot be changed</small>
+      </div>
+      
+      <button type="submit" class="btn btn-primary">Update User</button>
+      <a href="/admin/users" class="btn btn-secondary">Cancel</a>
+    </form>
+  </div>
+</div>

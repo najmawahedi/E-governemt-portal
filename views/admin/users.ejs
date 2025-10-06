@@ -1,0 +1,61 @@
+<h2>User Management</h2>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <a href="/admin/register-officer" class="btn btn-success">Add Officer</a>
+    <a href="/admin/register-department-head" class="btn btn-info"
+      >Add Department Head</a
+    >
+  </div>
+</div>
+
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Name</th>
+      <th>Email</th>
+      <th>Role</th>
+      <th>Department</th>
+      <th>Created</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% if (!users || users.length === 0) { %>
+    <tr>
+      <td colspan="7">No users found</td>
+    </tr>
+    <% } else { %> <% users.forEach(function(user) { %>
+    <tr>
+      <td><%= user.id %></td>
+      <td><%= user.name %></td>
+      <td><%= user.email %></td>
+      <td>
+        <span
+          class="badge <% if (user.role === 'admin') { %>bg-danger<% } %> <% if (user.role === 'department_head') { %>bg-info<% } %> <% if (user.role === 'officer') { %>bg-primary<% } %> <% if (user.role === 'citizen') { %>bg-secondary<% } %>"
+        >
+          <%= user.role %>
+        </span>
+      </td>
+      <td><%= user.department_name || 'N/A' %></td>
+      <td><%= new Date(user.created_at).toLocaleDateString() %></td>
+      <td>
+        <a
+          href="/admin/users/<%= user.id %>/edit"
+          class="btn btn-sm btn-warning"
+          >Edit</a
+        >
+        <form
+          method="POST"
+          action="/admin/users/<%= user.id %>/delete"
+          style="display: inline"
+          onsubmit="return confirm('Are you sure you want to delete <%= user.name %>?')"
+        >
+          <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+        </form>
+      </td>
+    </tr>
+    <% }) %> <% } %>
+  </tbody>
+</table>

@@ -1,0 +1,70 @@
+<h2>Officer Profile</h2>
+
+<div class="row">
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header">
+        <h5>Professional Information</h5>
+      </div>
+      <div class="card-body">
+        <form method="POST" action="/profile">
+          <div class="mb-3">
+            <label class="form-label">Full Name</label>
+            <input type="text" class="form-control" name="name" value="<%= user.name %>" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Email</label>
+            <input type="email" class="form-control" value="<%= user.email %>" readonly>
+            <small class="text-muted">Email cannot be changed</small>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Department</label>
+            <input type="text" class="form-control" value="<%= user.department_name %>" readonly>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Job Title</label>
+            <input type="text" class="form-control" name="job_title" value="<%= user.job_title || '' %>">
+          </div>
+          <button type="submit" class="btn btn-primary">Update Profile</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header">
+        <h5>Performance Statistics</h5>
+      </div>
+      <div class="card-body">
+        <div class="mb-3">
+          <strong>Department:</strong> <%= user.department_name %>
+        </div>
+        <div class="mb-3">
+          <strong>Role:</strong> 
+          <span class="badge bg-primary"><%= user.role %></span>
+        </div>
+        <div class="mb-3">
+          <strong>Total Requests in Department:</strong> <%= stats.totalHandled %>
+        </div>
+        <div class="mb-3">
+          <strong>Approved Requests in Department:</strong> <%= stats.approvedCount %>
+        </div>
+        <div class="mb-3">
+          <strong>Member Since:</strong> <%= new Date(user.created_at).toLocaleDateString() %>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card mt-3">
+      <div class="card-header">
+        <h5>Quick Actions</h5>
+      </div>
+      <div class="card-body">
+        <a href="/officer/dashboard" class="btn btn-primary w-100 mb-2">View Dashboard</a>
+        <a href="/officer/search" class="btn btn-info w-100 mb-2">Search Requests</a>
+        <a href="/logout" class="btn btn-outline-secondary w-100">Logout</a>
+      </div>
+    </div>
+  </div>
+</div>

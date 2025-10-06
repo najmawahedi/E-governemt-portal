@@ -1,0 +1,64 @@
+<h2>Payment for Service</h2>
+
+<div class="row justify-content-center">
+  <div class="col-md-8">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0">Payment Details</h5>
+      </div>
+      <div class="card-body">
+        <!-- Service Information -->
+        <div class="alert alert-info">
+          <h6>Service: <%= service.name %></h6>
+          <p class="mb-1">Department: <%= service.department_name %></p>
+          <p class="mb-1">Request ID: #<%= request.id %></p>
+          <h5 class="mt-2">Amount: $<%= service.fee %></h5>
+        </div>
+
+        <!-- Payment Form -->
+        <form method="POST" action="/payments/<%= request.id %>">
+          <input type="hidden" name="amount" value="<%= service.fee %>">
+          
+          <div class="mb-3">
+            <label class="form-label">Cardholder Name</label>
+            <input type="text" class="form-control" name="card_name" value="Test User" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Card Number</label>
+            <input type="text" class="form-control" name="card_number" value="4242 4242 4242 4242" required readonly>
+            <small class="text-muted">Test card number - no real payment</small>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6">
+              <label class="form-label">Expiry Date</label>
+              <input type="text" class="form-control" name="expiry" value="12/25" required readonly>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">CVV</label>
+              <input type="text" class="form-control" name="cvv" value="123" required readonly>
+            </div>
+          </div>
+
+          <div class="mt-4">
+            <button type="submit" class="btn btn-success btn-lg w-100">
+              Pay $<%= service.fee %>
+            </button>
+            <a href="/citizen/track?citizen_id=<%= user.id %>&name=<%= encodeURIComponent(user.name) %>" 
+               class="btn btn-secondary w-100 mt-2">
+              Cancel
+            </a>
+          </div>
+        </form>
+
+        <!-- Test Information -->
+        <div class="mt-3 alert alert-warning">
+          <h6>💡 Test Payment Information</h6>
+          <p class="mb-1">This is a <strong>simulated payment</strong> - no real money will be charged</p>
+          <p class="mb-0">Use the pre-filled test card details to proceed</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,24 @@
+<h2>Edit Department: <%= department.name %></h2>
+
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <% if (typeof error !== 'undefined') { %>
+      <div class="alert alert-danger"><%= error %></div>
+    <% } %>
+    
+    <form method="POST" action="/admin/departments/<%= department.id %>/edit">
+      <div class="mb-3">
+        <label class="form-label">Department Name</label>
+        <input type="text" class="form-control" name="name" value="<%= department.name %>" required>
+      </div>
+      
+      <div class="mb-3">
+        <label class="form-label">Description</label>
+        <textarea class="form-control" name="description" rows="3"><%= department.description || '' %></textarea>
+      </div>
+      
+      <button type="submit" class="btn btn-primary">Update Department</button>
+      <a href="/admin/departments" class="btn btn-secondary">Cancel</a>
+    </form>
+  </div>
+</div>

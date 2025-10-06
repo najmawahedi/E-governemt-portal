@@ -1,0 +1,57 @@
+<h2>Officer Dashboard</h2>
+
+<!-- Success/Error Messages -->
+<% if (typeof success !== 'undefined') { %>
+  <div class="alert alert-success"><%= success %></div>
+<% } %>
+<% if (typeof error !== 'undefined') { %>
+  <div class="alert alert-danger"><%= error %></div>
+<% } %>
+
+<p>Welcome <strong><%= user.name %></strong> — Requests for your department:</p>
+
+<div class="mb-3">
+  <a href="/officer/search" class="btn btn-info">Search Requests</a>
+  <a href="/officer/profile" class="btn btn-secondary">My Profile</a>
+</div>
+
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Citizen</th>
+      <th>Service</th>
+      <th>Status</th>
+      <th>Submitted</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% if (requests.length === 0) { %>
+      <tr>
+        <td colspan="6">No requests found for your department</td>
+      </tr>
+    <% } else { %>
+      <% requests.forEach(r => { %>
+        <tr>
+          <td><%= r.id %></td>
+          <td><%= r.citizen_name %></td>
+          <td><%= r.service_name %></td>
+          <td>
+            <span class="badge 
+              <% if (r.status === 'approved') { %>bg-success<% } %>
+              <% if (r.status === 'rejected') { %>bg-danger<% } %>
+              <% if (r.status === 'submitted' || r.status === 'under_review') { %>bg-warning<% } %>
+            ">
+              <%= r.status %>
+            </span>
+          </td>
+          <td><%= new Date(r.created_at).toLocaleString() %></td>
+          <td>
+            <a class="btn btn-sm btn-primary" href="/officer/requests/<%= r.id %>">Review</a>
+          </td>
+        </tr>
+      <% }) %>
+    <% } %>
+  </tbody>
+</table>

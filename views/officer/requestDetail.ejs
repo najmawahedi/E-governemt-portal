@@ -1,0 +1,107 @@
+<h2>Request #<%= request.id %></h2>
+
+<!-- Success/Error Messages -->
+<% if (typeof success !== 'undefined') { %>
+  <div class="alert alert-success"><%= success %></div>
+<% } %>
+<% if (typeof error !== 'undefined') { %>
+  <div class="alert alert-danger"><%= error %></div>
+<% } %>
+
+<div class="card mb-3">
+  <div class="card-body">
+    <h5 class="card-title"><%= request.service_name %></h5>
+    <p><strong>Citizen:</strong> <%= request.citizen_name %> &lt;<%= request.citizen_email %>&gt;</p>
+    <p><strong>Status:</strong> 
+      <span class="badge 
+        <% if (request.status === 'approved') { %>bg-success<% } %>
+        <% if (request.status === 'rejected') { %>bg-danger<% } %>
+        <% if (request.status === 'submitted' || request.status === 'under_review') { %>bg-warning<% } %>
+      ">
+        <%= request.status %>
+      </span>
+    </p>
+    <p><strong>Submitted:</strong> <%= new Date(request.created_at).toLocaleString() %></p>
+    <p><strong>Service Fee:</strong> $<%= request.fee || 0 %></p>
+    <% if (request.service_description) { %>
+      <p><strong>Service Description:</strong> <%= request.service_description %></p>
+    <% } %>
+    
+    <% if (request.request_data) { %>
+      <hr/>
+      <h6>Additional Information</h6>
+      <% 
+        let formData = {};
+        try {
+          formData = JSON.parse(request.request_data);
+        } catch (e) {
+          formData = {};
+        }
+        
+        Object.entries(formData).forEach(([key, value]) => {
+      %>
+        <p><strong><%= key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) %>:</strong> <%= value %></p>
+      <% }) %>
+    <% } %>
+  </div>
+</div>
+
+<div class="mb-3">
+  <h5>Documents</h5>
+  <% if (documents.length === 0) { %>
+    <p>No documents uploaded.</p>
+  <% } else { %>
+    <div class="list-group">
+      <% documents.forEach(doc => { %>
+        <div class="list-group-item">
+          <!-- ✅ FIXED: Handle both forward slashes AND backslashes -->
+          <% 
+            let cleanFilePath = doc.file_path;
+            // Remove "uploads/" prefix if it exists (forward slash)
+            if (cleanFilePath.startsWith('uploads/')) {
+              cleanFilePath = cleanFilePath.substring(7); // Remove "uploads/"
+            }
+            // Remove "uploads\" prefix if it exists (backslash - Windows)
+            if (cleanFilePath.startsWith('uploads\\')) {
+              cleanFilePath = cleanFilePath.substring(8); // Remove "uploads\"
+            }
+            // Universal approach - get only the filename
+            const parts = cleanFilePath.split(/[\\\/]/);
+            cleanFilePath = parts[parts.length - 1]; // Get last part (filename)
+          %>
+          <a target="_blank" href="/uploads/<%= cleanFilePath %>" class="btn btn-sm btn-outline-primary">
+            📄 View <%= doc.original_file_name || cleanFilePath %>
+          </a>
+          <small class="text-muted ms-2">Uploaded: <%= new Date(doc.created_at).toLocaleString() %></small>
+        </div>
+      <% }) %>
+    </div>
+  <% } %>
+</div>
+<!-- Approve / Reject form -->
+<div class="card">
+  <div class="card-header">
+    <h5>Update Request Status</h5>
+  </div>
+  <div class="card-body">
+    <form method="POST" action="/officer/requests/<%= request.id %>/status" class="d-flex gap-2 align-items-end">
+      <div class="flex-grow-1">
+        <label class="form-label">New Status</label>
+        <select name="status" class="form-select" required>
+          <option value="">-- Select status --</option>
+          <option value="under_review" <%= request.status === 'under_review' ? 'selected' : '' %>>Under Review</option>
+          <option value="approved" <%= request.status === 'approved' ? 'selected' : '' %>>Approve</option>
+          <option value="rejected" <%= request.status === 'rejected' ? 'selected' : '' %>>Reject</option>
+        </select>
+      </div>
+      
+      <div>
+        <button type="submit" class="btn btn-success">Update Status</button>
+      </div>
+      
+      <div>
+        <a href="/officer/dashboard" class="btn btn-secondary">Back to Dashboard</a>
+      </div>
+    </form>
+  </div>
+</div>
