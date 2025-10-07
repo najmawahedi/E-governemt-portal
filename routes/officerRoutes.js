@@ -8,23 +8,35 @@ const router = express.Router();
 // Protect all officer routes
 router.use(authMiddleware);
 
-// Officer dashboard — list requests for the officer's department
+// Officer dashboard 
 router.get("/dashboard", async (req, res) => {
   try {
     const officerId = req.user.id;
+    console.log("🏠 Dashboard route - Officer ID:", officerId);
 
-    // Get officer department
     const officerRes = await pool.query(
-      "SELECT department_id, name FROM users WHERE id = $1 AND role IN ('officer', 'department_head')",
+      `SELECT u.id, u.name, u.department_id, u.role, d.name as department_name 
+       FROM users u 
+       LEFT JOIN departments d ON u.department_id = d.id 
+       WHERE u.id = $1`,
       [officerId]
     );
 
-    const officer = officerRes.rows[0];
-    if (!officer || !officer.department_id) {
-      return res.status(403).send("Officer has no department assigned");
+    console.log("🏠 Officer query result:", officerRes.rows);
+
+    if (officerRes.rows.length === 0) {
+      console.log("❌ Officer not found in database");
+      return res.status(404).send("Officer not found");
     }
 
-    const departmentId = officer.department_id;
+    const officer = officerRes.rows[0];
+    
+    if (!officer.department_id) {
+      console.log("❌ Officer has no department_id:", officer);
+      return res.status(403).send("Officer has no department assigned. Please contact administrator.");
+    }
+
+    console.log("✅ Officer department:", officer.department_id);
 
     // ✅ FIXED QUERY: Use services.department_id
     const q = `
@@ -35,7 +47,9 @@ router.get("/dashboard", async (req, res) => {
       WHERE s.department_id = $1
       ORDER BY r.created_at DESC
     `;
-    const result = await pool.query(q, [departmentId]);
+    const result = await pool.query(q, [officer.department_id]);
+
+    console.log("✅ Dashboard requests found:", result.rows.length);
 
     res.render("officer/dashboard", {
       user: officer,
@@ -43,7 +57,7 @@ router.get("/dashboard", async (req, res) => {
     });
   } catch (err) {
     console.error("❌ officer/dashboard:", err);
-    res.status(500).send("Server error");
+    res.status(500).send("Server error: " + err.message);
   }
 });
 
@@ -107,22 +121,37 @@ router.post("/requests/:id/status", async (req, res) => {
 });
 
 // Search requests
+
+// Search requests - FIXED VERSION
 router.get("/search", async (req, res) => {
   try {
     const officerId = req.user.id;
+    console.log("🔍 Search route - Officer ID:", officerId);
 
-    // Get officer department
+    // Get officer department - IMPROVED QUERY
     const officerRes = await pool.query(
-      "SELECT department_id, name FROM users WHERE id = $1 AND role IN ('officer', 'department_head')",
+      `SELECT u.id, u.name, u.department_id, u.role, d.name as department_name 
+       FROM users u 
+       LEFT JOIN departments d ON u.department_id = d.id 
+       WHERE u.id = $1`,
       [officerId]
     );
 
-    const officer = officerRes.rows[0];
-    if (!officer || !officer.department_id) {
-      return res.status(403).send("Officer has no department assigned");
+    console.log("🔍 Officer query result:", officerRes.rows);
+
+    if (officerRes.rows.length === 0) {
+      console.log("❌ Officer not found in database");
+      return res.status(404).send("Officer not found");
     }
 
-    const departmentId = officer.department_id;
+    const officer = officerRes.rows[0];
+    
+    if (!officer.department_id) {
+      console.log("❌ Officer has no department_id:", officer);
+      return res.status(403).send("Officer has no department assigned. Please contact administrator.");
+    }
+
+    console.log("✅ Officer department:", officer.department_id);
 
     // Build search query
     let query = `
@@ -133,7 +162,7 @@ router.get("/search", async (req, res) => {
       WHERE s.department_id = $1
     `;
 
-    const queryParams = [departmentId];
+    const queryParams = [officer.department_id];
     let paramCount = 1;
 
     // Add search filters
@@ -163,15 +192,18 @@ router.get("/search", async (req, res) => {
 
     query += " ORDER BY r.created_at DESC";
 
+    console.log("🔍 Search query:", query);
+    console.log("🔍 Search params:", queryParams);
+
     const result = await pool.query(query, queryParams);
 
     // Get services for dropdown
     const services = await pool.query(
-      `
-      SELECT * FROM services WHERE department_id = $1 ORDER BY name
-    `,
-      [departmentId]
+      `SELECT * FROM services WHERE department_id = $1 ORDER BY name`,
+      [officer.department_id]
     );
+
+    console.log("✅ Search results found:", result.rows.length);
 
     res.render("officer/search", {
       user: officer,
@@ -181,7 +213,7 @@ router.get("/search", async (req, res) => {
     });
   } catch (err) {
     console.error("❌ officer/search:", err);
-    res.status(500).send("Server error");
+    res.status(500).send("Server error: " + err.message);
   }
 });
 

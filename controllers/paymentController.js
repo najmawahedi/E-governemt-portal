@@ -47,7 +47,7 @@ export async function getPaymentPage(req, res) {
       );
     }
 
-    console.log("✅ Rendering payment page for request:", request_id);
+    
 
     res.render("citizen/payment", {
       title: "Make Payment",
@@ -60,7 +60,7 @@ export async function getPaymentPage(req, res) {
       },
     });
   } catch (err) {
-    console.error("❌ Error in getPaymentPage:", err.message);
+    
     res.status(500).send("Server error: " + err.message);
   }
 }
@@ -72,7 +72,7 @@ export async function makePayment(req, res) {
     const { requestId } = req.params;
     const { amount } = req.body;
 
-    console.log("💳 Payment processing:", { userId, requestId, amount });
+   
 
     if (!userId) {
       console.log("❌ No user ID in session");
