@@ -7,10 +7,18 @@ import {
 
 const router = express.Router();
 
-// Get payment page
+// Get payment page (no auth required - uses query params)
 router.get("/", getPaymentPage);
 
-// Process payment
+// Process payment (with auth)
 router.post("/:requestId", authMiddleware, makePayment);
+
+// Add payment success page route
+router.get("/success", (req, res) => {
+  res.render("citizen/payment-success", {
+    title: "Payment Successful",
+    user: req.user,
+  });
+});
 
 export default router;
