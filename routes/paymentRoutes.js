@@ -13,12 +13,15 @@ router.get("/", getPaymentPage);
 // Process payment (with auth)
 router.post("/:requestId", authMiddleware, makePayment);
 
-// Add payment success page route
-router.get("/success", (req, res) => {
+
+router.get("/success", authMiddleware, (req, res) => {
+  const { request_id, payment_id } = req.query;
+  
   res.render("citizen/payment-success", {
     title: "Payment Successful",
     user: req.user,
+    request_id: request_id,
+    payment_id: payment_id
   });
 });
-
 export default router;

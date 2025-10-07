@@ -42,22 +42,37 @@ app.set("layout", "layout"); // default layout file = views/layout.ejs
 app.use(express.static(path.join(__dirname, "public")));
 
 // ✅ Session configuration (FIXED for production)
+// ✅ Session configuration (FIXED for Render.com)
 const PostgresSessionStore = pgSession(session);
 app.use(
   session({
     store: new PostgresSessionStore({
       pool: pool,
       tableName: "session",
+      createTableIfMissing: true // Add this line
     }),
     secret: process.env.SESSION_SECRET || "please_change_this_secret",
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: process.env.NODE_ENV === "production", // true in production
+      secure: false, // ⚠️ CHANGE TO FALSE for Render.com
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      httpOnly: true,
+      sameSite: 'lax'
     },
+    name: 'egov.sid' // Explicit session name
   })
 );
+app.use((req, res, next) => {
+  console.log("🔍 Session Debug:", {
+    sessionID: req.sessionID,
+    hasUser: !!req.session.user,
+    user: req.session.user,
+    path: req.path,
+    method: req.method,
+  });
+  next();
+});
 
 // =======================
 // ✅ API ROUTES
