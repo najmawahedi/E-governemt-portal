@@ -1,5 +1,13 @@
 <h2>Officer Profile</h2>
 
+<!-- Success/Error Messages -->
+<% if (typeof success !== 'undefined') { %>
+  <div class="alert alert-success"><%= success %></div>
+<% } %>
+<% if (typeof error !== 'undefined') { %>
+  <div class="alert alert-danger"><%= error %></div>
+<% } %>
+
 <div class="row">
   <div class="col-md-6">
     <div class="card">
@@ -7,7 +15,8 @@
         <h5>Professional Information</h5>
       </div>
       <div class="card-body">
-        <form method="POST" action="/profile">
+        <!-- ✅ FIXED: Changed action to /officer/profile -->
+        <form method="POST" action="/officer/profile">
           <div class="mb-3">
             <label class="form-label">Full Name</label>
             <input type="text" class="form-control" name="name" value="<%= user.name %>" required>

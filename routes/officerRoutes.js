@@ -8,7 +8,7 @@ const router = express.Router();
 // Protect all officer routes
 router.use(authMiddleware);
 
-// Officer dashboard 
+// Officer dashboard
 router.get("/dashboard", async (req, res) => {
   try {
     const officerId = req.user.id;
@@ -30,10 +30,14 @@ router.get("/dashboard", async (req, res) => {
     }
 
     const officer = officerRes.rows[0];
-    
+
     if (!officer.department_id) {
       console.log("❌ Officer has no department_id:", officer);
-      return res.status(403).send("Officer has no department assigned. Please contact administrator.");
+      return res
+        .status(403)
+        .send(
+          "Officer has no department assigned. Please contact administrator."
+        );
     }
 
     console.log("✅ Officer department:", officer.department_id);
@@ -121,8 +125,6 @@ router.post("/requests/:id/status", async (req, res) => {
 });
 
 // Search requests
-
-// Search requests - FIXED VERSION
 router.get("/search", async (req, res) => {
   try {
     const officerId = req.user.id;
@@ -145,10 +147,14 @@ router.get("/search", async (req, res) => {
     }
 
     const officer = officerRes.rows[0];
-    
+
     if (!officer.department_id) {
       console.log("❌ Officer has no department_id:", officer);
-      return res.status(403).send("Officer has no department assigned. Please contact administrator.");
+      return res
+        .status(403)
+        .send(
+          "Officer has no department assigned. Please contact administrator."
+        );
     }
 
     console.log("✅ Officer department:", officer.department_id);
@@ -217,7 +223,7 @@ router.get("/search", async (req, res) => {
   }
 });
 
-// Officer profile page
+// Officer profile page - GET
 router.get("/profile", async (req, res) => {
   try {
     const officerId = req.user.id;
@@ -252,12 +258,12 @@ router.get("/profile", async (req, res) => {
       },
     });
   } catch (err) {
-    console.error("❌ officer/profile:", err);
+    console.error("❌ officer/profile GET:", err);
     res.status(500).send("Server error");
   }
 });
 
-// Update officer profile - ADD THIS ROUTE
+// Officer profile update - POST
 router.post("/profile", async (req, res) => {
   try {
     const officerId = req.user.id;
@@ -267,13 +273,12 @@ router.post("/profile", async (req, res) => {
 
     // Update officer profile
     await pool.query(
-      "UPDATE users SET name = $1, job_title = $2 WHERE id = $3",
+      "UPDATE users SET name = $1, job_title = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3",
       [name, job_title, officerId]
     );
 
     console.log("✅ Officer profile updated successfully");
 
-    
     res.redirect("/officer/profile?success=Profile updated successfully");
   } catch (err) {
     console.error("❌ Error updating officer profile:", err.message);
