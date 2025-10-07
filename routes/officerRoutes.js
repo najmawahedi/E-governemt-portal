@@ -257,4 +257,28 @@ router.get("/profile", async (req, res) => {
   }
 });
 
+// Update officer profile - ADD THIS ROUTE
+router.post("/profile", async (req, res) => {
+  try {
+    const officerId = req.user.id;
+    const { name, job_title } = req.body;
+
+    console.log("📝 Updating officer profile:", { officerId, name, job_title });
+
+    // Update officer profile
+    await pool.query(
+      "UPDATE users SET name = $1, job_title = $2 WHERE id = $3",
+      [name, job_title, officerId]
+    );
+
+    console.log("✅ Officer profile updated successfully");
+
+    
+    res.redirect("/officer/profile?success=Profile updated successfully");
+  } catch (err) {
+    console.error("❌ Error updating officer profile:", err.message);
+    res.redirect("/officer/profile?error=Failed to update profile");
+  }
+});
+
 export default router;
