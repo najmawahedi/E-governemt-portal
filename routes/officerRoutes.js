@@ -12,6 +12,8 @@ router.use(authMiddleware);
 router.get("/dashboard", async (req, res) => {
   try {
     const officerId = req.user.id;
+    const { success, error } = req.query; 
+
     console.log("🏠 Dashboard route - Officer ID:", officerId);
 
     const officerRes = await pool.query(
@@ -30,19 +32,14 @@ router.get("/dashboard", async (req, res) => {
     }
 
     const officer = officerRes.rows[0];
-
+    
     if (!officer.department_id) {
       console.log("❌ Officer has no department_id:", officer);
-      return res
-        .status(403)
-        .send(
-          "Officer has no department assigned. Please contact administrator."
-        );
+      return res.status(403).send("Officer has no department assigned. Please contact administrator.");
     }
 
     console.log("✅ Officer department:", officer.department_id);
 
-    // ✅ FIXED QUERY: Use services.department_id
     const q = `
       SELECT r.id, r.status, r.created_at, u.name AS citizen_name, s.name AS service_name
       FROM requests r
@@ -58,13 +55,14 @@ router.get("/dashboard", async (req, res) => {
     res.render("officer/dashboard", {
       user: officer,
       requests: result.rows,
+      success: success, 
+      error: error 
     });
   } catch (err) {
     console.error("❌ officer/dashboard:", err);
     res.status(500).send("Server error: " + err.message);
   }
 });
-
 // Request detail page
 router.get("/requests/:id", async (req, res) => {
   try {
@@ -223,11 +221,10 @@ router.get("/search", async (req, res) => {
   }
 });
 
-// Officer profile page - GET
 router.get("/profile", async (req, res) => {
   try {
     const officerId = req.user.id;
-
+    const { success, error } = req.query;
     const officerResult = await pool.query(
       `
       SELECT u.*, d.name as department_name,
@@ -256,6 +253,8 @@ router.get("/profile", async (req, res) => {
         totalHandled: officer.total_requests || 0,
         approvedCount: officer.approved_requests || 0,
       },
+      success: success, // Pass success message to template
+      error: error, // Pass error message to template
     });
   } catch (err) {
     console.error("❌ officer/profile GET:", err);
@@ -263,6 +262,29 @@ router.get("/profile", async (req, res) => {
   }
 });
 
+// Officer profile update - POST (UPDATED)
+router.post("/profile", async (req, res) => {
+  try {
+    const officerId = req.user.id;
+    const { name, job_title } = req.body;
+
+    console.log("📝 Updating officer profile:", { officerId, name, job_title });
+
+    // Update officer profile
+    await pool.query(
+      "UPDATE users SET name = $1, job_title = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3",
+      [name, job_title, officerId]
+    );
+
+    console.log("✅ Officer profile updated successfully");
+
+    // Redirect to dashboard with success message
+    res.redirect("/officer/dashboard?success=Profile updated successfully");
+  } catch (err) {
+    console.error("❌ Error updating officer profile:", err.message);
+    res.redirect("/officer/profile?error=Failed to update profile");
+  }
+});
 // Officer profile update - POST
 router.post("/profile", async (req, res) => {
   try {
