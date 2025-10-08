@@ -100,6 +100,11 @@ Navigate to `http://localhost:3000` in your web browser
 - Password: `admin123`
 - Capabilities: Full system administration privileges
 
+### officer Access
+Log in as an example officer
+- Email: `officer.interior@example.com`
+- Password: `12345`
+
 ### Citizen Access
 Users can register new accounts through the citizen registration portal.
 
