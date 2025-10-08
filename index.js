@@ -115,7 +115,7 @@ app.get("/register", (req, res) => {
 // ✅ Citizen and Officer routes
 app.use("/citizen", citizenRoutes);
 app.use("/officer", officerRoutes);
-
+app.use("/dept-head", deptHeadRoutes);
 // =======================
 // ✅ LOGOUT ROUTE
 // =======================
