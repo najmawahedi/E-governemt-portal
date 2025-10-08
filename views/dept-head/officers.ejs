@@ -1,49 +1,63 @@
 <h2>Manage Officers - <%= department.name %></h2>
 
+<!-- Success/Error Messages -->
+<% if (typeof success !== 'undefined') { %>
+  <div class="alert alert-success"><%= success %></div>
+<% } %>
+<% if (typeof error !== 'undefined') { %>
+  <div class="alert alert-danger"><%= error %></div>
+<% } %>
+
 <div class="d-flex justify-content-between align-items-center mb-3">
   <div>
-    <a href="/admin/register-officer" class="btn btn-success">Add New Officer</a>
+    <a href="/dept-head/officers/new" class="btn btn-success">Add New Officer</a>
   </div>
 </div>
 
 <% if (officers.length === 0) { %>
   <div class="alert alert-info">
-    No officers in your department. 
-    <a href="/admin/register-officer" class="alert-link">Add your first officer</a>
+    <h5>No Officers in Your Department</h5>
+    <p class="mb-0">Get started by adding your first officer to help manage requests.</p>
+    <a href="/dept-head/officers/new" class="btn btn-primary mt-2">Add First Officer</a>
   </div>
 <% } else { %>
-  <table class="table table-striped">
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>Name</th>
-        <th>Email</th>
-        <th>Job Title</th>
-        <th>Joined</th>
-        <th>Department Requests</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      <% officers.forEach(officer => { %>
-        <tr>
-          <td><%= officer.id %></td>
-          <td><%= officer.name %></td>
-          <td><%= officer.email %></td>
-          <td><%= officer.job_title || 'Officer' %></td>
-          <td><%= new Date(officer.created_at).toLocaleDateString() %></td>
-          <td><%= officer.department_requests || 0 %></td>
-          <td>
-            <a href="/admin/users/<%= officer.id %>/edit" class="btn btn-sm btn-warning">Edit</a>
-            <form method="POST" action="/admin/users/<%= officer.id %>/delete" style="display: inline;" 
-                  onsubmit="return confirm('Remove <%= officer.name %> from department?')">
-              <button type="submit" class="btn btn-sm btn-danger">Remove</button>
-            </form>
-          </td>
-        </tr>
-      <% }) %>
-    </tbody>
-  </table>
+  <div class="card">
+    <div class="card-header">
+      <h5 class="mb-0">Department Officers (<%= officers.length %>)</h5>
+    </div>
+    <div class="card-body">
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Job Title</th>
+            <th>Joined</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% officers.forEach(officer => { %>
+            <tr>
+              <td><%= officer.id %></td>
+              <td><%= officer.name %></td>
+              <td><%= officer.email %></td>
+              <td><%= officer.job_title || 'Officer' %></td>
+              <td><%= new Date(officer.created_at).toLocaleDateString() %></td>
+              <td>
+                <a href="/dept-head/officers/<%= officer.id %>/edit" class="btn btn-sm btn-warning">Edit</a>
+                <form method="POST" action="/dept-head/officers/<%= officer.id %>/remove" style="display: inline;" 
+                      onsubmit="return confirm('Remove <%= officer.name %> from department?')">
+                  <button type="submit" class="btn btn-sm btn-danger">Remove</button>
+                </form>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </div>
 <% } %>
 
 <div class="mt-3">

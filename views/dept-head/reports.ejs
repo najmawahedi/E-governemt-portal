@@ -1,13 +1,12 @@
 <h2>Department Reports - <%= department.name %></h2>
 
+<!-- Stats Cards -->
 <div class="row mb-4">
   <div class="col-md-4">
     <div class="card text-white bg-primary">
       <div class="card-body">
         <h5>Total Requests</h5>
-        <h3>
-          <%= reports.requestsByService.reduce((sum, service) => sum + parseInt(service.total_requests), 0) %>
-        </h3>
+        <h3><%= reports.totalRequests || 0 %></h3>
       </div>
     </div>
   </div>
@@ -15,9 +14,7 @@
     <div class="card text-white bg-success">
       <div class="card-body">
         <h5>Approved</h5>
-        <h3>
-          <%= reports.requestsByService.reduce((sum, service) => sum + parseInt(service.approved), 0) %>
-        </h3>
+        <h3><%= reports.totalApproved || 0 %></h3>
       </div>
     </div>
   </div>
@@ -25,9 +22,7 @@
     <div class="card text-white bg-danger">
       <div class="card-body">
         <h5>Rejected</h5>
-        <h3>
-          <%= reports.requestsByService.reduce((sum, service) => sum + parseInt(service.rejected), 0) %>
-        </h3>
+        <h3><%= reports.totalRejected || 0 %></h3>
       </div>
     </div>
   </div>
@@ -40,26 +35,30 @@
         <h5>Requests by Service</h5>
       </div>
       <div class="card-body">
-        <table class="table table-sm">
-          <thead>
-            <tr>
-              <th>Service</th>
-              <th>Total</th>
-              <th>Approved</th>
-              <th>Rejected</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% reports.requestsByService.forEach(service => { %>
+        <% if (reports.requestsByService.length === 0) { %>
+          <p class="text-muted">No service data available</p>
+        <% } else { %>
+          <table class="table table-sm">
+            <thead>
               <tr>
-                <td><%= service.service_name %></td>
-                <td><%= service.total_requests %></td>
-                <td class="text-success"><%= service.approved %></td>
-                <td class="text-danger"><%= service.rejected %></td>
+                <th>Service</th>
+                <th>Total</th>
+                <th>Approved</th>
+                <th>Rejected</th>
               </tr>
-            <% }) %>
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              <% reports.requestsByService.forEach(service => { %>
+                <tr>
+                  <td><%= service.service_name %></td>
+                  <td><%= service.total_requests %></td>
+                  <td class="text-success"><%= service.approved %></td>
+                  <td class="text-danger"><%= service.rejected %></td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        <% } %>
       </div>
     </div>
   </div>
@@ -67,29 +66,20 @@
   <div class="col-md-6">
     <div class="card">
       <div class="card-header">
-        <h5>Officer Performance</h5>
+        <h5>Department Officers (<%= reports.officers.length %>)</h5>
       </div>
       <div class="card-body">
-        <table class="table table-sm">
-          <thead>
-            <tr>
-              <th>Officer</th>
-              <th>Handled</th>
-              <th>Approved</th>
-              <th>Rejected</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% reports.officerPerformance.forEach(officer => { %>
-              <tr>
-                <td><%= officer.officer_name %></td>
-                <td><%= officer.total_handled %></td>
-                <td class="text-success"><%= officer.approved %></td>
-                <td class="text-danger"><%= officer.rejected %></td>
-              </tr>
+        <% if (reports.officers.length === 0) { %>
+          <p class="text-muted">No officers in department</p>
+        <% } else { %>
+          <div class="list-group">
+            <% reports.officers.forEach(officer => { %>
+              <div class="list-group-item">
+                <h6 class="mb-1"><%= officer.officer_name %></h6>
+              </div>
             <% }) %>
-          </tbody>
-        </table>
+          </div>
+        <% } %>
       </div>
     </div>
   </div>
@@ -100,26 +90,30 @@
     <h5>Monthly Trends (Last 6 Months)</h5>
   </div>
   <div class="card-body">
-    <table class="table table-sm">
-      <thead>
-        <tr>
-          <th>Month</th>
-          <th>Total</th>
-          <th>Approved</th>
-          <th>Rejected</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% reports.monthlyStats.forEach(month => { %>
+    <% if (reports.monthlyStats.length === 0) { %>
+      <p class="text-muted">No monthly data available</p>
+    <% } else { %>
+      <table class="table table-sm">
+        <thead>
           <tr>
-            <td><%= month.month %></td>
-            <td><%= month.total_requests %></td>
-            <td class="text-success"><%= month.approved %></td>
-            <td class="text-danger"><%= month.rejected %></td>
+            <th>Month</th>
+            <th>Total</th>
+            <th>Approved</th>
+            <th>Rejected</th>
           </tr>
-        <% }) %>
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          <% reports.monthlyStats.forEach(month => { %>
+            <tr>
+              <td><%= month.month %></td>
+              <td><%= month.total_requests %></td>
+              <td class="text-success"><%= month.approved %></td>
+              <td class="text-danger"><%= month.rejected %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    <% } %>
   </div>
 </div>
 
