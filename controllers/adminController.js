@@ -110,8 +110,11 @@ export async function createDepartmentHead(req, res) {
 }
 
 // ================= DEPARTMENT MANAGEMENT =================
+// ================= DEPARTMENT MANAGEMENT =================
 export async function getDepartments(req, res) {
   try {
+    console.log("🟢 Loading departments...");
+    
     const departments = await pool.query(`
       SELECT d.*, 
         COUNT(DISTINCT s.id) as service_count,
@@ -123,29 +126,54 @@ export async function getDepartments(req, res) {
       ORDER BY d.name
     `);
 
+    console.log(`✅ Found ${departments.rows.length} departments`);
+
     res.render("admin/departments", {
       title: "Department Management",
       departments: departments.rows,
+      success: req.query.success,
+      error: req.query.error
     });
   } catch (err) {
     console.error("❌ Error in getDepartments:", err.message);
-    res.status(500).send("Server error");
+    res.status(500).render("admin/departments", {
+      title: "Department Management",
+      departments: [],
+      error: "Failed to load departments"
+    });
   }
 }
 
 export async function createDepartment(req, res) {
   try {
     const { name, description } = req.body;
+    
+    console.log("🟢 Creating department:", { name, description });
+
+    if (!name || name.trim() === '') {
+      return res.redirect("/admin/departments?error=Department name is required");
+    }
+
+    // Check if department already exists
+    const existingDept = await pool.query(
+      "SELECT id FROM departments WHERE name = $1",
+      [name.trim()]
+    );
+
+    if (existingDept.rows.length > 0) {
+      return res.redirect("/admin/departments?error=Department name already exists");
+    }
 
     await pool.query(
       "INSERT INTO departments (name, description) VALUES ($1, $2)",
-      [name, description]
+      [name.trim(), description?.trim() || null]
     );
 
+    console.log("✅ Department created successfully");
     res.redirect("/admin/departments?success=Department created successfully");
   } catch (err) {
     console.error("❌ Error in createDepartment:", err.message);
-    res.redirect("/admin/departments?error=Failed to create department");
+    res.redirect("/admin/departments?error=Failed to create department: " + err.message);
   }
 }
 

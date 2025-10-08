@@ -1,54 +1,88 @@
 <h2>Department Management</h2>
 
-<div class="d-flex justify-content-between align-items-center mb-3">
+<!-- Success/Error Messages -->
+<% if (typeof success !== 'undefined' && success) { %>
+  <div class="alert alert-success alert-dismissible fade show" role="alert">
+    <%= success %>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+<% } %>
+
+<% if (typeof error !== 'undefined' && error) { %>
+  <div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <%= error %>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+<% } %>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="mb-0">All Departments</h4>
   <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addDepartmentModal">
-    Add Department
+    <i class="bi bi-plus-circle"></i> Add Department
   </button>
 </div>
 
-<!-- Success/Error Messages -->
-<% if (typeof success !== 'undefined') { %>
-  <div class="alert alert-success"><%= success %></div>
-<% } %>
-<% if (typeof error !== 'undefined') { %>
-  <div class="alert alert-danger"><%= error %></div>
-<% } %>
-
-<table class="table table-striped">
-  <thead>
-    <tr>
-      <th>ID</th>
-      <th>Name</th>
-      <th>Description</th>
-      <th>Total Services</th>
-      <th>Total Officers</th>
-      <th>Actions</th>
-    </tr>
-  </thead>
-  <tbody>
+<!-- Departments Table -->
+<div class="card">
+  <div class="card-body">
     <% if (!departments || departments.length === 0) { %>
-      <tr>
-        <td colspan="6">No departments found</td>
-      </tr>
+      <div class="text-center py-4">
+        <h5 class="text-muted">No Departments Found</h5>
+        <p class="text-muted">Get started by creating your first department.</p>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addDepartmentModal">
+          Create First Department
+        </button>
+      </div>
     <% } else { %>
-      <% departments.forEach(dept => { %>
-        <tr>
-          <td><%= dept.id %></td>
-          <td><%= dept.name %></td>
-          <td><%= dept.description || 'No description' %></td>
-          <td><%= dept.service_count || 0 %></td>
-          <td><%= dept.officer_count || 0 %></td>
-          <td>
-            <a href="/admin/departments/<%= dept.id %>/edit" class="btn btn-sm btn-warning">Edit</a>
-            <form method="POST" action="/admin/departments/<%= dept.id %>/delete" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete <%= dept.name %> department?')">
-              <button type="submit" class="btn btn-sm btn-danger">Delete</button>
-            </form>
-          </td>
-        </tr>
-      <% }) %>
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead class="table-light">
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Description</th>
+              <th>Services</th>
+              <th>Officers</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% departments.forEach(dept => { %>
+              <tr>
+                <td><strong>#<%= dept.id %></strong></td>
+                <td>
+                  <strong><%= dept.name %></strong>
+                </td>
+                <td>
+                  <span class="text-muted"><%= dept.description || 'No description' %></span>
+                </td>
+                <td>
+                  <span class="badge bg-primary"><%= dept.service_count || 0 %> services</span>
+                </td>
+                <td>
+                  <span class="badge bg-info"><%= dept.officer_count || 0 %> officers</span>
+                </td>
+                <td>
+                  <div class="btn-group btn-group-sm">
+                    <a href="/admin/departments/<%= dept.id %>/edit" class="btn btn-outline-warning">
+                      Edit
+                    </a>
+                    <form method="POST" action="/admin/departments/<%= dept.id %>/delete" style="display: inline;">
+                      <button type="submit" class="btn btn-outline-danger" 
+                              onclick="return confirm('Are you sure you want to delete <%= dept.name %>? This action cannot be undone.')">
+                        Delete
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
     <% } %>
-  </tbody>
-</table>
+  </div>
+</div>
 
 <!-- Add Department Modal -->
 <div class="modal fade" id="addDepartmentModal" tabindex="-1" aria-labelledby="addDepartmentModalLabel" aria-hidden="true">
@@ -61,12 +95,16 @@
       <form method="POST" action="/admin/departments">
         <div class="modal-body">
           <div class="mb-3">
-            <label for="departmentName" class="form-label">Department Name</label>
-            <input type="text" class="form-control" id="departmentName" name="name" required>
+            <label for="departmentName" class="form-label">Department Name <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="departmentName" name="name" required 
+                   placeholder="e.g., Interior Department">
+            <div class="form-text">Enter a unique name for the department.</div>
           </div>
           <div class="mb-3">
             <label for="departmentDescription" class="form-label">Description</label>
-            <textarea class="form-control" id="departmentDescription" name="description" rows="3"></textarea>
+            <textarea class="form-control" id="departmentDescription" name="description" rows="3"
+                      placeholder="Brief description of the department's responsibilities..."></textarea>
+            <div class="form-text">Optional description of what this department handles.</div>
           </div>
         </div>
         <div class="modal-footer">
@@ -77,3 +115,70 @@
     </div>
   </div>
 </div>
+
+<!-- Alternative: Simple Form (if modal still doesn't work) -->
+<div class="card mt-4" id="alternativeForm" style="display: none;">
+  <div class="card-header">
+    <h5 class="mb-0">Add New Department</h5>
+  </div>
+  <div class="card-body">
+    <form method="POST" action="/admin/departments">
+      <div class="row">
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label class="form-label">Department Name</label>
+            <input type="text" class="form-control" name="name" required>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label class="form-label">Description</label>
+            <input type="text" class="form-control" name="description">
+          </div>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary">Create Department</button>
+      <button type="button" class="btn btn-secondary" onclick="hideAlternativeForm()">Cancel</button>
+    </form>
+  </div>
+</div>
+
+<div class="mt-3">
+  <a href="/admin/dashboard" class="btn btn-outline-secondary">
+    ← Back to Dashboard
+  </a>
+  
+  <!-- Debug button if modal fails -->
+  <button class="btn btn-outline-info btn-sm" onclick="showAlternativeForm()">
+    Can't see modal? Click here
+  </button>
+</div>
+
+<script>
+  // Fallback functions if Bootstrap modal fails
+  function showAlternativeForm() {
+    document.getElementById('alternativeForm').style.display = 'block';
+  }
+  
+  function hideAlternativeForm() {
+    document.getElementById('alternativeForm').style.display = 'none';
+  }
+
+  // Test modal functionality
+  document.addEventListener('DOMContentLoaded', function() {
+    const modalButton = document.querySelector('[data-bs-toggle="modal"]');
+    if (modalButton) {
+      modalButton.addEventListener('click', function() {
+        console.log('✅ Modal button clicked');
+      });
+    }
+    
+    // Check if Bootstrap is loaded
+    if (typeof bootstrap !== 'undefined') {
+      console.log('✅ Bootstrap is loaded correctly');
+    } else {
+      console.log('❌ Bootstrap not loaded - showing alternative form');
+      document.getElementById('alternativeForm').style.display = 'block';
+    }
+  });
+</script>
