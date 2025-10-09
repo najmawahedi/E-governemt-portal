@@ -3,21 +3,24 @@ import { registerUser, loginUser } from "../controllers/authController.js";
 
 const router = express.Router();
 
-// show register page
-// show register page
+// Show register page
 router.get("/register", (req, res) => res.render("auth/register"));
 
-
-
-
-// handle register
+// Handle register
 router.post("/register", registerUser);
 
-// show login page
-// show login page
-router.get("/login", (req, res) => res.render("auth/login"));
+// Show login page
+router.get("/login", (req, res) => {
+  res.render("auth/login", {
+    success: req.query.success === "1",
+    successMessage:
+      req.query.success === "1"
+        ? "Registration successful! Please login."
+        : undefined,
+  });
+});
 
-// handle login
+// Handle login
 router.post("/login", loginUser);
 
 export default router;

@@ -1,9 +1,8 @@
-
 import pool from "../config/db.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
-//  Register Citizen only
+// Register Citizen only
 export async function registerUser(req, res) {
   const {
     name,
@@ -50,18 +49,16 @@ export async function registerUser(req, res) {
         phone_number || null,
         address || null,
         job_title || null,
-        null, 
+        null,
       ]
     );
 
-    
     res.redirect("/auth/login?success=1");
   } catch (err) {
     console.error("❌ Error in registerUser:", err.message);
     res.render("auth/register", { error: "Server error" });
   }
 }
-
 
 export async function loginUser(req, res) {
   try {
@@ -72,7 +69,7 @@ export async function loginUser(req, res) {
       email,
     ]);
     if (result.rows.length === 0) {
-      return res.status(400).send("Invalid email or password");
+      return res.render("auth/login", { error: "Invalid email or password" });
     }
 
     const user = result.rows[0];
@@ -80,7 +77,7 @@ export async function loginUser(req, res) {
     // Compare password
     const validPassword = await bcrypt.compare(password, user.password);
     if (!validPassword) {
-      return res.status(400).send("Invalid email or password");
+      return res.render("auth/login", { error: "Invalid email or password" });
     }
 
     // ✅ Save user info in session
@@ -91,27 +88,20 @@ export async function loginUser(req, res) {
       department_id: user.department_id || null,
     };
 
-    // ✅ UPDATED: Redirect based on role (added department_head)
+    // ✅ FIXED: Clean redirects without URL parameters
     if (user.role === "citizen") {
-      return res.redirect(
-        `/citizen/dashboard?citizen_id=${user.id}&name=${encodeURIComponent(
-          user.name
-        )}`
-      );
-    } else if (user.role === "officer" || user.role === "department_head") {
-      // Both officers and department heads go to their respective dashboards
-      if (user.role === "department_head") {
-        return res.redirect(`/dept-head/dashboard`);
-      } else {
-        return res.redirect(`/officer/dashboard`);
-      }
+      return res.redirect("/citizen/dashboard");
+    } else if (user.role === "officer") {
+      return res.redirect("/officer/dashboard");
+    } else if (user.role === "department_head") {
+      return res.redirect("/dept-head/dashboard");
     } else if (user.role === "admin") {
-      return res.redirect(`/admin/dashboard`);
+      return res.redirect("/admin/dashboard");
     } else {
-      return res.redirect("/"); // fallback
+      return res.redirect("/");
     }
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send("Server error");
+    console.error("❌ Error in loginUser:", err.message);
+    return res.render("auth/login", { error: "Server error" });
   }
 }
