@@ -187,6 +187,8 @@ export async function getServices(req, res) {
       title: "Service Management",
       services: services.rows,
       departments: departments.rows,
+      success: req.query.success,
+      error: req.query.error,
     });
   } catch (err) {
     console.error("❌ Error in getServices:", err.message);
@@ -198,19 +200,55 @@ export async function createService(req, res) {
   try {
     const { name, department_id, description, fee, required_fields } = req.body;
 
+    // Validate required fields
+    if (!name || !name.trim()) {
+      return res.redirect("/admin/services?error=Service name is required");
+    }
+
+    if (!department_id) {
+      return res.redirect("/admin/services?error=Department is required");
+    }
+
+    // Process required fields
+    let requiredFieldsJson = null;
+    if (required_fields && required_fields.trim()) {
+      const fieldsArray = required_fields
+        .split(",")
+        .map((field) => field.trim())
+        .filter((field) => field);
+
+      if (fieldsArray.length > 0) {
+        requiredFieldsJson = JSON.stringify(fieldsArray);
+      }
+    }
+
     await pool.query(
       `INSERT INTO services (name, department_id, description, fee, required_fields) 
        VALUES ($1, $2, $3, $4, $5)`,
-      [name, department_id, description, parseFloat(fee) || 0, required_fields]
+      [
+        name.trim(),
+        department_id,
+        description?.trim() || null,
+        parseFloat(fee) || 0,
+        requiredFieldsJson,
+      ]
     );
 
     res.redirect("/admin/services?success=Service created successfully");
   } catch (err) {
     console.error("❌ Error in createService:", err.message);
+
+    // Check for unique constraint violation
+    if (err.code === "23505") {
+      // unique_violation
+      return res.redirect(
+        "/admin/services?error=Service name already exists in this department"
+      );
+    }
+
     res.redirect("/admin/services?error=Failed to create service");
   }
 }
-
 // ================= SIMPLE REPORTS =================
 export async function getReports(req, res) {
   try {
