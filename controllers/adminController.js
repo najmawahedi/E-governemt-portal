@@ -1,24 +1,14 @@
 import pool from "../config/db.js";
 import bcrypt from "bcrypt";
 
-// ================= ADMIN DASHBOARD =================
 export async function adminDashboard(req, res) {
   try {
-    // Get total users count
     const usersCount = await pool.query("SELECT COUNT(*) FROM users");
-
-    // Get total requests count
     const requestsCount = await pool.query("SELECT COUNT(*) FROM requests");
-
-    // Get pending requests count
     const pendingCount = await pool.query(
       "SELECT COUNT(*) FROM requests WHERE status = 'submitted' OR status = 'under_review'"
     );
-
-    // Get total revenue
     const revenueResult = await pool.query("SELECT SUM(amount) FROM payments");
-
-    // Get recent requests
     const recentRequests = await pool.query(`
       SELECT r.*, u.name as citizen_name, s.name as service_name, d.name as department_name
       FROM requests r
@@ -30,7 +20,7 @@ export async function adminDashboard(req, res) {
 
     res.render("admin/dashboard", {
       title: "Admin Dashboard",
-      user: req.session.user, // ← ADD THIS LINE
+      user: req.session.user,
       stats: {
         totalUsers: parseInt(usersCount.rows[0].count),
         totalRequests: parseInt(requestsCount.rows[0].count),
@@ -40,12 +30,11 @@ export async function adminDashboard(req, res) {
       recentRequests: recentRequests.rows,
     });
   } catch (err) {
-    console.error("❌ Error in adminDashboard:", err.message);
+    console.error("Error in adminDashboard:", err.message);
     res.status(500).send("Server error");
   }
 }
 
-// ================= USER MANAGEMENT =================
 export async function getUsers(req, res) {
   try {
     const users = await pool.query(`
@@ -58,9 +47,10 @@ export async function getUsers(req, res) {
     res.render("admin/users", {
       title: "User Management",
       users: users.rows,
+      user: req.session.user,
     });
   } catch (err) {
-    console.error("❌ Error in getUsers:", err.message);
+    console.error("Error in getUsers:", err.message);
     res.status(500).send("Server error");
   }
 }
@@ -68,8 +58,6 @@ export async function getUsers(req, res) {
 export async function createOfficer(req, res) {
   try {
     const { name, email, password, department_id, job_title } = req.body;
-
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
     await pool.query(
@@ -80,7 +68,7 @@ export async function createOfficer(req, res) {
 
     res.redirect("/admin/users?success=Officer created successfully");
   } catch (err) {
-    console.error("❌ Error in createOfficer:", err.message);
+    console.error("Error in createOfficer:", err.message);
     res.redirect("/admin/users?error=Failed to create officer");
   }
 }
@@ -88,7 +76,6 @@ export async function createOfficer(req, res) {
 export async function createDepartmentHead(req, res) {
   try {
     const { name, email, password, department_id, job_title } = req.body;
-
     const hashedPassword = await bcrypt.hash(password, 10);
 
     await pool.query(
@@ -105,12 +92,11 @@ export async function createDepartmentHead(req, res) {
 
     res.redirect("/admin/users?success=Department head created successfully");
   } catch (err) {
-    console.error("❌ Error in createDepartmentHead:", err.message);
+    console.error("Error in createDepartmentHead:", err.message);
     res.redirect("/admin/users?error=Failed to create department head");
   }
 }
 
-// ================= DEPARTMENT MANAGEMENT =================
 export async function getDepartments(req, res) {
   try {
     const departments = await pool.query(`
@@ -129,9 +115,10 @@ export async function getDepartments(req, res) {
       departments: departments.rows,
       success: req.query.success,
       error: req.query.error,
+      user: req.session.user,
     });
   } catch (err) {
-    console.error("❌ Error in getDepartments:", err.message);
+    console.error("Error in getDepartments:", err.message);
     res.status(500).send("Server error");
   }
 }
@@ -146,7 +133,6 @@ export async function createDepartment(req, res) {
       );
     }
 
-    // Check if department already exists
     const existingDept = await pool.query(
       "SELECT id FROM departments WHERE name = $1",
       [name.trim()]
@@ -165,12 +151,11 @@ export async function createDepartment(req, res) {
 
     res.redirect("/admin/departments?success=Department created successfully");
   } catch (err) {
-    console.error("❌ Error in createDepartment:", err.message);
+    console.error("Error in createDepartment:", err.message);
     res.redirect("/admin/departments?error=Failed to create department");
   }
 }
 
-// ================= SERVICE MANAGEMENT =================
 export async function getServices(req, res) {
   try {
     const services = await pool.query(`
@@ -190,9 +175,10 @@ export async function getServices(req, res) {
       departments: departments.rows,
       success: req.query.success,
       error: req.query.error,
+      user: req.session.user,
     });
   } catch (err) {
-    console.error("❌ Error in getServices:", err.message);
+    console.error("Error in getServices:", err.message);
     res.status(500).send("Server error");
   }
 }
@@ -201,7 +187,6 @@ export async function createService(req, res) {
   try {
     const { name, department_id, description, fee, required_fields } = req.body;
 
-    // Validate required fields
     if (!name || !name.trim()) {
       return res.redirect("/admin/services?error=Service name is required");
     }
@@ -210,7 +195,6 @@ export async function createService(req, res) {
       return res.redirect("/admin/services?error=Department is required");
     }
 
-    // Check if service already exists in this department
     const existingService = await pool.query(
       "SELECT id FROM services WHERE name = $1 AND department_id = $2",
       [name.trim(), department_id]
@@ -222,7 +206,6 @@ export async function createService(req, res) {
       );
     }
 
-    // Process required fields
     let requiredFieldsJson = null;
     if (required_fields && required_fields.trim()) {
       const fieldsArray = required_fields
@@ -235,7 +218,6 @@ export async function createService(req, res) {
       }
     }
 
-    // Let the database auto-generate the ID by not specifying it in INSERT
     await pool.query(
       `INSERT INTO services (department_id, name, description, fee, required_fields) 
        VALUES ($1, $2, $3, $4, $5)`,
@@ -250,14 +232,9 @@ export async function createService(req, res) {
 
     res.redirect("/admin/services?success=Service created successfully");
   } catch (err) {
-    console.error("❌ Error in createService:", err.message);
+    console.error("Error in createService:", err.message);
 
     if (err.code === "23505") {
-      if (err.constraint === "services_pkey") {
-        return res.redirect(
-          "/admin/services?error=Database error: ID conflict. Please try again."
-        );
-      }
       return res.redirect(
         "/admin/services?error=Service name already exists in this department"
       );
@@ -266,10 +243,9 @@ export async function createService(req, res) {
     res.redirect("/admin/services?error=Failed to create service");
   }
 }
-// ================= SIMPLE REPORTS =================
+
 export async function getReports(req, res) {
   try {
-    // Simple requests by department
     const requestsByDept = await pool.query(`
       SELECT d.name as department_name,
              COUNT(r.id) as total_requests,
@@ -282,7 +258,6 @@ export async function getReports(req, res) {
       ORDER BY d.name;
     `);
 
-    // Simple revenue by department
     const revenueByDept = await pool.query(`
       SELECT d.name as department_name,
              SUM(p.amount) as total_collected
@@ -294,7 +269,6 @@ export async function getReports(req, res) {
       ORDER BY d.name;
     `);
 
-    // Total stats
     const totalRequests = await pool.query("SELECT COUNT(*) FROM requests");
     const approvedRequests = await pool.query(
       "SELECT COUNT(*) FROM requests WHERE status='approved'"
@@ -308,6 +282,7 @@ export async function getReports(req, res) {
 
     res.render("admin/reports", {
       title: "System Reports",
+      user: req.session.user,
       reports: {
         totalRequests: parseInt(totalRequests.rows[0].count),
         approvedRequests: parseInt(approvedRequests.rows[0].count),
@@ -318,12 +293,11 @@ export async function getReports(req, res) {
       },
     });
   } catch (err) {
-    console.error("❌ ERROR in getReports:", err.message);
+    console.error("Error in getReports:", err.message);
     res.status(500).send("Server error");
   }
 }
 
-// ================= ALL REQUESTS =================
 export async function getAllRequests(req, res) {
   try {
     const requests = await pool.query(`
@@ -343,9 +317,10 @@ export async function getAllRequests(req, res) {
       title: "All System Requests",
       requests: requests.rows,
       departments: departments.rows,
+      user: req.session.user,
     });
   } catch (err) {
-    console.error("❌ Error in getAllRequests:", err.message);
+    console.error("Error in getAllRequests:", err.message);
     res.status(500).send("Server error");
   }
 }

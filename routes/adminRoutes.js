@@ -16,33 +16,22 @@ import pool from "../config/db.js";
 
 const router = express.Router();
 
-// Protect all admin routes
 router.use(authMiddleware);
 
-// =======================
-// ✅ DASHBOARD
-// =======================
 router.get("/dashboard", adminDashboard);
 
-// =======================
-// ✅ USER MANAGEMENT
-// =======================
 router.get("/users", getUsers);
 router.post("/users/officer", createOfficer);
 router.post("/users/department-head", createDepartmentHead);
 
-// User edit/delete routes
 router.get("/users/:id/edit", async (req, res) => {
   try {
     const userId = req.params.id;
-
     const userResult = await pool.query(
-      `
-      SELECT u.*, d.name as department_name 
-      FROM users u 
-      LEFT JOIN departments d ON u.department_id = d.id 
-      WHERE u.id = $1
-    `,
+      `SELECT u.*, d.name as department_name 
+       FROM users u 
+       LEFT JOIN departments d ON u.department_id = d.id 
+       WHERE u.id = $1`,
       [userId]
     );
 
@@ -57,11 +46,12 @@ router.get("/users/:id/edit", async (req, res) => {
 
     res.render("admin/edit-user", {
       title: "Edit User",
+      user: req.session.user,
       user: user,
       departments: departments.rows,
     });
   } catch (err) {
-    console.error("❌ Error loading edit user:", err.message);
+    console.error("Error loading edit user:", err.message);
     res.status(500).send("Server error");
   }
 });
@@ -79,7 +69,7 @@ router.post("/users/:id/edit", async (req, res) => {
 
     res.redirect("/admin/users?success=User updated successfully");
   } catch (err) {
-    console.error("❌ Error updating user:", err.message);
+    console.error("Error updating user:", err.message);
     res.redirect(`/admin/users/${userId}/edit?error=Failed to update user`);
   }
 });
@@ -93,25 +83,19 @@ router.post("/users/:id/delete", async (req, res) => {
     }
 
     await pool.query("DELETE FROM users WHERE id = $1", [userId]);
-
     res.redirect("/admin/users?success=User deleted successfully");
   } catch (err) {
-    console.error("❌ Error deleting user:", err.message);
+    console.error("Error deleting user:", err.message);
     res.redirect("/admin/users?error=Failed to delete user");
   }
 });
 
-// =======================
-// ✅ DEPARTMENT MANAGEMENT
-// =======================
 router.get("/departments", getDepartments);
 router.post("/departments", createDepartment);
 
-// Department edit/delete routes
 router.get("/departments/:id/edit", async (req, res) => {
   try {
     const deptId = req.params.id;
-
     const deptResult = await pool.query(
       "SELECT * FROM departments WHERE id = $1",
       [deptId]
@@ -123,10 +107,11 @@ router.get("/departments/:id/edit", async (req, res) => {
 
     res.render("admin/edit-department", {
       title: "Edit Department",
+      user: req.session.user,
       department: deptResult.rows[0],
     });
   } catch (err) {
-    console.error("❌ Error loading edit department:", err.message);
+    console.error("Error loading edit department:", err.message);
     res.status(500).send("Server error");
   }
 });
@@ -140,10 +125,9 @@ router.post("/departments/:id/edit", async (req, res) => {
       "UPDATE departments SET name = $1, description = $2 WHERE id = $3",
       [name, description, deptId]
     );
-
     res.redirect("/admin/departments?success=Department updated successfully");
   } catch (err) {
-    console.error("❌ Error updating department:", err.message);
+    console.error("Error updating department:", err.message);
     res.redirect(
       `/admin/departments/${deptId}/edit?error=Failed to update department`
     );
@@ -176,32 +160,24 @@ router.post("/departments/:id/delete", async (req, res) => {
     }
 
     await pool.query("DELETE FROM departments WHERE id = $1", [deptId]);
-
     res.redirect("/admin/departments?success=Department deleted successfully");
   } catch (err) {
-    console.error("❌ Error deleting department:", err.message);
+    console.error("Error deleting department:", err.message);
     res.redirect("/admin/departments?error=Failed to delete department");
   }
 });
 
-// =======================
-// ✅ SERVICE MANAGEMENT
-// =======================
 router.get("/services", getServices);
 router.post("/services", createService);
 
-// Service edit/delete routes
 router.get("/services/:id/edit", async (req, res) => {
   try {
     const serviceId = req.params.id;
-
     const serviceResult = await pool.query(
-      `
-      SELECT s.*, d.name as department_name
-      FROM services s
-      JOIN departments d ON s.department_id = d.id
-      WHERE s.id = $1
-    `,
+      `SELECT s.*, d.name as department_name
+       FROM services s
+       JOIN departments d ON s.department_id = d.id
+       WHERE s.id = $1`,
       [serviceId]
     );
 
@@ -226,12 +202,13 @@ router.get("/services/:id/edit", async (req, res) => {
 
     res.render("admin/edit-service", {
       title: "Edit Service",
+      user: req.session.user,
       service: service,
       departments: departments.rows,
       fieldsString: fieldsString,
     });
   } catch (err) {
-    console.error("❌ Error loading edit service:", err.message);
+    console.error("Error loading edit service:", err.message);
     res.status(500).send("Server error");
   }
 });
@@ -267,7 +244,7 @@ router.post("/services/:id/edit", async (req, res) => {
 
     res.redirect("/admin/services?success=Service updated successfully");
   } catch (err) {
-    console.error("❌ Error updating service:", err.message);
+    console.error("Error updating service:", err.message);
     res.redirect(
       `/admin/services/${serviceId}/edit?error=Failed to update service`
     );
@@ -277,7 +254,6 @@ router.post("/services/:id/edit", async (req, res) => {
 router.post("/services/:id/delete", async (req, res) => {
   try {
     const serviceId = req.params.id;
-
     const requestsCount = await pool.query(
       "SELECT COUNT(*) FROM requests WHERE service_id = $1",
       [serviceId]
@@ -290,27 +266,16 @@ router.post("/services/:id/delete", async (req, res) => {
     }
 
     await pool.query("DELETE FROM services WHERE id = $1", [serviceId]);
-
     res.redirect("/admin/services?success=Service deleted successfully");
   } catch (err) {
-    console.error("❌ Error deleting service:", err.message);
+    console.error("Error deleting service:", err.message);
     res.redirect("/admin/services?error=Failed to delete service");
   }
 });
 
-// =======================
-// ✅ REPORTS
-// =======================
 router.get("/reports", getReports);
-
-// =======================
-// ✅ REQUESTS OVERVIEW
-// =======================
 router.get("/requests", getAllRequests);
 
-// =======================
-// ✅ REGISTRATION PAGES
-// =======================
 router.get("/register-officer", async (req, res) => {
   try {
     const departments = await pool.query(
@@ -321,7 +286,7 @@ router.get("/register-officer", async (req, res) => {
       departments: departments.rows,
     });
   } catch (err) {
-    console.error("❌ Error loading officer registration:", err.message);
+    console.error("Error loading officer registration:", err.message);
     res.status(500).send("Server error");
   }
 });
@@ -336,10 +301,7 @@ router.get("/register-department-head", async (req, res) => {
       departments: departments.rows,
     });
   } catch (err) {
-    console.error(
-      "❌ Error loading department head registration:",
-      err.message
-    );
+    console.error("Error loading department head registration:", err.message);
     res.status(500).send("Server error");
   }
 });
