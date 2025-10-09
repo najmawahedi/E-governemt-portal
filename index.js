@@ -95,12 +95,8 @@ app.use("/admin", adminRoutes);
 // =======================
 
 // Home Page
-
 app.get("/", (req, res) => {
-  res.render("index", {
-    title: "E-Government Services Portal",
-    hideAuthButtons: true,
-  });
+  res.render("home", { title: "Home" });
 });
 
 // Auth pages
