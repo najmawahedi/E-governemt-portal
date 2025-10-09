@@ -61,16 +61,6 @@ app.use(
     name: 'egov.sid' 
   })
 );
-app.use((req, res, next) => {
-  console.log("🔍 Session Debug:", {
-    sessionID: req.sessionID,
-    hasUser: !!req.session.user,
-    user: req.session.user,
-    path: req.path,
-    method: req.method,
-  });
-  next();
-});
 
 
 app.use("/auth", authRoutes);
