@@ -30,6 +30,7 @@ export async function adminDashboard(req, res) {
 
     res.render("admin/dashboard", {
       title: "Admin Dashboard",
+      user: req.session.user, // ← ADD THIS LINE
       stats: {
         totalUsers: parseInt(usersCount.rows[0].count),
         totalRequests: parseInt(requestsCount.rows[0].count),
