@@ -110,11 +110,8 @@ export async function createDepartmentHead(req, res) {
 }
 
 // ================= DEPARTMENT MANAGEMENT =================
-// ================= DEPARTMENT MANAGEMENT =================
 export async function getDepartments(req, res) {
   try {
-    console.log("🟢 Loading departments...");
-    
     const departments = await pool.query(`
       SELECT d.*, 
         COUNT(DISTINCT s.id) as service_count,
@@ -126,32 +123,26 @@ export async function getDepartments(req, res) {
       ORDER BY d.name
     `);
 
-    console.log(`✅ Found ${departments.rows.length} departments`);
-
     res.render("admin/departments", {
       title: "Department Management",
       departments: departments.rows,
       success: req.query.success,
-      error: req.query.error
+      error: req.query.error,
     });
   } catch (err) {
     console.error("❌ Error in getDepartments:", err.message);
-    res.status(500).render("admin/departments", {
-      title: "Department Management",
-      departments: [],
-      error: "Failed to load departments"
-    });
+    res.status(500).send("Server error");
   }
 }
 
 export async function createDepartment(req, res) {
   try {
     const { name, description } = req.body;
-    
-    console.log("🟢 Creating department:", { name, description });
 
-    if (!name || name.trim() === '') {
-      return res.redirect("/admin/departments?error=Department name is required");
+    if (!name || name.trim() === "") {
+      return res.redirect(
+        "/admin/departments?error=Department name is required"
+      );
     }
 
     // Check if department already exists
@@ -161,7 +152,9 @@ export async function createDepartment(req, res) {
     );
 
     if (existingDept.rows.length > 0) {
-      return res.redirect("/admin/departments?error=Department name already exists");
+      return res.redirect(
+        "/admin/departments?error=Department name already exists"
+      );
     }
 
     await pool.query(
@@ -169,11 +162,10 @@ export async function createDepartment(req, res) {
       [name.trim(), description?.trim() || null]
     );
 
-    console.log("✅ Department created successfully");
     res.redirect("/admin/departments?success=Department created successfully");
   } catch (err) {
     console.error("❌ Error in createDepartment:", err.message);
-    res.redirect("/admin/departments?error=Failed to create department: " + err.message);
+    res.redirect("/admin/departments?error=Failed to create department");
   }
 }
 
@@ -220,13 +212,9 @@ export async function createService(req, res) {
 }
 
 // ================= SIMPLE REPORTS =================
-// ================= SIMPLE REPORTS =================
 export async function getReports(req, res) {
   try {
-    console.log("🟢 getReports function started");
-
     // Simple requests by department
-    console.log("🟢 Running requestsByDept query...");
     const requestsByDept = await pool.query(`
       SELECT d.name as department_name,
              COUNT(r.id) as total_requests,
@@ -238,10 +226,8 @@ export async function getReports(req, res) {
       GROUP BY d.name
       ORDER BY d.name;
     `);
-    console.log("✅ requestsByDept query successful");
 
     // Simple revenue by department
-    console.log("🟢 Running revenueByDept query...");
     const revenueByDept = await pool.query(`
       SELECT d.name as department_name,
              SUM(p.amount) as total_collected
@@ -252,10 +238,8 @@ export async function getReports(req, res) {
       GROUP BY d.name
       ORDER BY d.name;
     `);
-    console.log("✅ revenueByDept query successful");
 
     // Total stats
-    console.log("🟢 Running total stats queries...");
     const totalRequests = await pool.query("SELECT COUNT(*) FROM requests");
     const approvedRequests = await pool.query(
       "SELECT COUNT(*) FROM requests WHERE status='approved'"
@@ -266,9 +250,7 @@ export async function getReports(req, res) {
     const totalRevenue = await pool.query(
       "SELECT COALESCE(SUM(amount), 0) FROM payments"
     );
-    console.log("✅ All stats queries successful");
 
-    console.log("🟢 Rendering reports page...");
     res.render("admin/reports", {
       title: "System Reports",
       reports: {
@@ -280,11 +262,9 @@ export async function getReports(req, res) {
         revenueByDepartment: revenueByDept.rows,
       },
     });
-    console.log("✅ Reports page rendered successfully");
   } catch (err) {
     console.error("❌ ERROR in getReports:", err.message);
-    console.error("❌ Full error:", err);
-    res.status(500).send("Server error: " + err.message);
+    res.status(500).send("Server error");
   }
 }
 
