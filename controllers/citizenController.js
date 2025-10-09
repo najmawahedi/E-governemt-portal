@@ -6,17 +6,34 @@ import fs from "fs";
 // DASHBOARD
 // ------------------------
 export async function dashboardPage(req, res) {
-  const { citizen_id, name } = req.query;
+  try {
+    // Try session first, then fall back to query parameters for compatibility
+    let user = req.session.user;
 
-  if (!citizen_id || !name) {
-    return res
-      .status(400)
-      .send("Missing citizen information. Please login again.");
+    if (!user) {
+      // Fallback to query parameters for backward compatibility
+      const { citizen_id, name } = req.query;
+      if (citizen_id && name) {
+        user = { id: citizen_id, name: name, role: "citizen" };
+      } else {
+        return res.redirect("/auth/login");
+      }
+    }
+
+    if (user.role !== "citizen") {
+      return res.redirect("/auth/login");
+    }
+
+    res.render("citizen/dashboard", {
+      user: { id: user.id, name: user.name },
+    });
+  } catch (err) {
+    console.error("❌ Error in dashboardPage:", err.message);
+    res.status(500).render("error", {
+      title: "Server Error",
+      message: "Failed to load dashboard. Please try again.",
+    });
   }
-
-  res.render("citizen/dashboard", {
-    user: { id: citizen_id, name },
-  });
 }
 
 // ------------------------
@@ -24,12 +41,21 @@ export async function dashboardPage(req, res) {
 // ------------------------
 export async function applyServicePage(req, res) {
   try {
-    const { citizen_id, name } = req.query;
+    // Try session first, then fall back to query parameters for compatibility
+    let user = req.session.user;
 
-    if (!citizen_id || !name) {
-      return res
-        .status(400)
-        .send("Missing citizen information. Please login again.");
+    if (!user) {
+      // Fallback to query parameters for backward compatibility
+      const { citizen_id, name } = req.query;
+      if (citizen_id && name) {
+        user = { id: citizen_id, name: name, role: "citizen" };
+      } else {
+        return res.redirect("/auth/login");
+      }
+    }
+
+    if (user.role !== "citizen") {
+      return res.redirect("/auth/login");
     }
 
     const services = await pool.query(
@@ -40,7 +66,7 @@ export async function applyServicePage(req, res) {
 
     res.render("citizen/apply", {
       services: services.rows,
-      user: { id: citizen_id, name },
+      user: { id: user.id, name: user.name },
     });
   } catch (err) {
     console.error("❌ Error in applyServicePage:", err.message);
@@ -56,12 +82,27 @@ export async function applyServicePage(req, res) {
 // ------------------------
 export async function submitServiceRequest(req, res) {
   try {
-    const { citizen_id, service_id, name, ...extraFields } = req.body;
+    // Try session first, then fall back to query parameters for compatibility
+    let user = req.session.user;
+    const { service_id, citizen_id, name, ...extraFields } = req.body;
 
-    if (!citizen_id || !name || !service_id) {
+    if (!user) {
+      // Fallback to query parameters for backward compatibility
+      if (citizen_id && name) {
+        user = { id: citizen_id, name: name, role: "citizen" };
+      } else {
+        return res.redirect("/auth/login");
+      }
+    }
+
+    if (user.role !== "citizen") {
+      return res.redirect("/auth/login");
+    }
+
+    if (!service_id) {
       return res.status(400).render("error", {
         title: "Missing Information",
-        message: "Please fill in all required fields.",
+        message: "Please select a service.",
       });
     }
 
@@ -74,7 +115,7 @@ export async function submitServiceRequest(req, res) {
     const result = await pool.query(
       `INSERT INTO requests (citizen_id, service_id, status, request_data) 
        VALUES ($1, $2, $3, $4) RETURNING id`,
-      [citizen_id, service_id, "submitted", JSON.stringify(extraFields)]
+      [user.id, service_id, "submitted", JSON.stringify(extraFields)]
     );
 
     const requestId = result.rows[0].id;
@@ -97,9 +138,8 @@ export async function submitServiceRequest(req, res) {
       }
     }
 
-    res.redirect(
-      `/citizen/track?citizen_id=${citizen_id}&name=${encodeURIComponent(name)}`
-    );
+    // Use session-based redirect, but keep query params as fallback
+    res.redirect("/citizen/track");
   } catch (err) {
     console.error("❌ Error in submitServiceRequest:", err.message);
     res.status(500).render("error", {
@@ -114,12 +154,21 @@ export async function submitServiceRequest(req, res) {
 // ------------------------
 export async function trackRequests(req, res) {
   try {
-    const { citizen_id, name } = req.query;
+    // Try session first, then fall back to query parameters for compatibility
+    let user = req.session.user;
 
-    if (!citizen_id || !name) {
-      return res
-        .status(400)
-        .send("Missing citizen information. Please login again.");
+    if (!user) {
+      // Fallback to query parameters for backward compatibility
+      const { citizen_id, name } = req.query;
+      if (citizen_id && name) {
+        user = { id: citizen_id, name: name, role: "citizen" };
+      } else {
+        return res.redirect("/auth/login");
+      }
+    }
+
+    if (user.role !== "citizen") {
+      return res.redirect("/auth/login");
     }
 
     const requests = await pool.query(
@@ -129,12 +178,12 @@ export async function trackRequests(req, res) {
        JOIN departments d ON s.department_id = d.id
        WHERE r.citizen_id = $1
        ORDER BY r.created_at DESC`,
-      [citizen_id]
+      [user.id]
     );
 
     res.render("citizen/track", {
       requests: requests.rows,
-      user: { id: citizen_id, name },
+      user: { id: user.id, name: user.name },
     });
   } catch (err) {
     console.error("❌ Error in trackRequests:", err.message);
@@ -150,22 +199,31 @@ export async function trackRequests(req, res) {
 // ------------------------
 export async function notificationsPage(req, res) {
   try {
-    const { citizen_id, name } = req.query;
+    // Try session first, then fall back to query parameters for compatibility
+    let user = req.session.user;
 
-    if (!citizen_id || !name) {
-      return res
-        .status(400)
-        .send("Missing citizen information. Please login again.");
+    if (!user) {
+      // Fallback to query parameters for backward compatibility
+      const { citizen_id, name } = req.query;
+      if (citizen_id && name) {
+        user = { id: citizen_id, name: name, role: "citizen" };
+      } else {
+        return res.redirect("/auth/login");
+      }
+    }
+
+    if (user.role !== "citizen") {
+      return res.redirect("/auth/login");
     }
 
     const notifications = await pool.query(
       "SELECT * FROM notifications WHERE user_id = $1 ORDER BY created_at DESC",
-      [citizen_id]
+      [user.id]
     );
 
     res.render("citizen/notifications", {
       notifications: notifications.rows,
-      user: { id: citizen_id, name },
+      user: { id: user.id, name: user.name },
     });
   } catch (err) {
     console.error("❌ Error in notificationsPage:", err.message);

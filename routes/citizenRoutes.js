@@ -8,7 +8,6 @@ import {
 } from "../controllers/citizenController.js";
 import multer from "multer";
 import path from "path";
-import pool from "../config/db.js";
 import fs from "fs";
 
 const router = express.Router();
@@ -47,33 +46,6 @@ router.post("/apply", upload.array("documents"), submitServiceRequest);
 router.get("/track", trackRequests);
 
 // Notifications
-router.get("/notifications", async (req, res) => {
-  try {
-    const { citizen_id, name } = req.query;
-
-    if (!citizen_id || !name) {
-      return res.status(400).render("error", {
-        title: "Missing Information",
-        message: "Please login again to view notifications.",
-      });
-    }
-
-    const notifications = await pool.query(
-      "SELECT * FROM notifications WHERE user_id = $1 ORDER BY created_at DESC",
-      [citizen_id]
-    );
-
-    res.render("citizen/notifications", {
-      notifications: notifications.rows,
-      user: { id: citizen_id, name },
-    });
-  } catch (err) {
-    console.error("❌ Error in notifications route:", err.message);
-    res.status(500).render("error", {
-      title: "Server Error",
-      message: "Failed to load notifications. Please try again.",
-    });
-  }
-});
+router.get("/notifications", notificationsPage);
 
 export default router;
