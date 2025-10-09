@@ -209,6 +209,18 @@ export async function createService(req, res) {
       return res.redirect("/admin/services?error=Department is required");
     }
 
+    // Check if service already exists in this department
+    const existingService = await pool.query(
+      "SELECT id FROM services WHERE name = $1 AND department_id = $2",
+      [name.trim(), department_id]
+    );
+
+    if (existingService.rows.length > 0) {
+      return res.redirect(
+        "/admin/services?error=Service name already exists in this department"
+      );
+    }
+
     // Process required fields
     let requiredFieldsJson = null;
     if (required_fields && required_fields.trim()) {
@@ -222,12 +234,13 @@ export async function createService(req, res) {
       }
     }
 
+    // Let the database auto-generate the ID by not specifying it in INSERT
     await pool.query(
-      `INSERT INTO services (name, department_id, description, fee, required_fields) 
+      `INSERT INTO services (department_id, name, description, fee, required_fields) 
        VALUES ($1, $2, $3, $4, $5)`,
       [
-        name.trim(),
         department_id,
+        name.trim(),
         description?.trim() || null,
         parseFloat(fee) || 0,
         requiredFieldsJson,
@@ -238,9 +251,12 @@ export async function createService(req, res) {
   } catch (err) {
     console.error("❌ Error in createService:", err.message);
 
-    // Check for unique constraint violation
     if (err.code === "23505") {
-      // unique_violation
+      if (err.constraint === "services_pkey") {
+        return res.redirect(
+          "/admin/services?error=Database error: ID conflict. Please try again."
+        );
+      }
       return res.redirect(
         "/admin/services?error=Service name already exists in this department"
       );
