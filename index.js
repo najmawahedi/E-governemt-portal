@@ -49,7 +49,7 @@ app.use(
     store: new PostgresSessionStore({
       pool: pool,
       tableName: "session",
-      createTableIfMissing: true, // Add this line
+      createTableIfMissing: true // Add this line
     }),
     secret: process.env.SESSION_SECRET || "please_change_this_secret",
     resave: false,
@@ -58,9 +58,9 @@ app.use(
       secure: false, // ⚠️ CHANGE TO FALSE for Render.com
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
       httpOnly: true,
-      sameSite: "lax",
+      sameSite: 'lax'
     },
-    name: "egov.sid", // Explicit session name
+    name: 'egov.sid' // Explicit session name
   })
 );
 app.use((req, res, next) => {
@@ -95,8 +95,12 @@ app.use("/admin", adminRoutes);
 // =======================
 
 // Home Page
+// Home Page
 app.get("/", (req, res) => {
-  res.render("home", { title: "Home" });
+  res.render("home", { 
+    title: "E-Government Services Portal",
+    hideAuthButtons: true // Add this line
+  });
 });
 
 // Auth pages
