@@ -12,11 +12,9 @@ router.post("/register", registerUser);
 // Show login page
 router.get("/login", (req, res) => {
   res.render("auth/login", {
-    success: req.query.success === "1",
-    successMessage:
-      req.query.success === "1"
-        ? "Registration successful! Please login."
-        : undefined,
+    successMessage: req.query.success
+      ? "Registration successful! Please login."
+      : undefined,
   });
 });
 
