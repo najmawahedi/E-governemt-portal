@@ -128,7 +128,7 @@ router.get("/search", async (req, res) => {
     const officerId = req.user.id;
     console.log("🔍 Search route - Officer ID:", officerId);
 
-    // Get officer department - IMPROVED QUERY
+    
     const officerRes = await pool.query(
       `SELECT u.id, u.name, u.department_id, u.role, d.name as department_name 
        FROM users u 
@@ -253,8 +253,8 @@ router.get("/profile", async (req, res) => {
         totalHandled: officer.total_requests || 0,
         approvedCount: officer.approved_requests || 0,
       },
-      success: success, // Pass success message to template
-      error: error, // Pass error message to template
+      success: success, 
+      error: error,
     });
   } catch (err) {
     console.error("❌ officer/profile GET:", err);

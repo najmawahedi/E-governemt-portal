@@ -1,7 +1,7 @@
-// controllers/reportsController.js
+
 import pool from "../config/db.js";
 
-// 1️⃣ Requests per department
+
 export async function getRequestsPerDepartment(req, res) {
   try {
     const result = await pool.query(`
@@ -23,7 +23,7 @@ export async function getRequestsPerDepartment(req, res) {
   }
 }
 
-// 2️⃣ Payment summary per department
+
 export async function getPaymentSummary(req, res) {
   try {
     const result = await pool.query(`

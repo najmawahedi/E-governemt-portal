@@ -1,7 +1,6 @@
 import pool from "../config/db.js";
 import { createNotification } from "./notificationsController.js";
 
-// ================= Create Request =================
 export async function createRequest(req, res) {
   const citizenId = req.user.id;
   const { service_id } = req.body;
@@ -26,7 +25,7 @@ export async function createRequest(req, res) {
   }
 }
 
-// ================= Get Requests =================
+
 export async function getRequests(req, res) {
   const userId = req.user.id;
   const role = req.user.role;
@@ -46,7 +45,7 @@ export async function getRequests(req, res) {
       `;
       values = [userId];
     } else if (role === "officer" || role === "department_head") {
-      // Officer sees requests for their department
+      
       query = `
         SELECT r.*, s.name AS service_name, d.name AS department_name, u.name AS citizen_name
         FROM requests r
@@ -56,7 +55,7 @@ export async function getRequests(req, res) {
         WHERE d.id = $1
         ORDER BY r.created_at DESC
       `;
-      // Get officer's department_id
+      
       const officerResult = await pool.query(
         "SELECT department_id FROM users WHERE id = $1",
         [userId]
@@ -64,7 +63,7 @@ export async function getRequests(req, res) {
       const departmentId = officerResult.rows[0].department_id;
       values = [departmentId];
     } else if (role === "admin") {
-      // Admin sees all requests
+    
       query = `
         SELECT r.*, s.name AS service_name, d.name AS department_name, u.name AS citizen_name
         FROM requests r
@@ -84,7 +83,7 @@ export async function getRequests(req, res) {
   }
 }
 
-// ================= Get Single Request =================
+
 export async function getRequestById(req, res) {
   const requestId = req.params.id;
 
@@ -110,7 +109,7 @@ export async function getRequestById(req, res) {
   }
 }
 
-// ================= Update Request Status =================
+
 export async function updateRequestStatus(req, res) {
   const requestId = req.params.id;
   const { status } = req.body;
@@ -123,12 +122,12 @@ export async function updateRequestStatus(req, res) {
   }
 
   try {
-    // Only officer/department_head/admin can update
+    
     if (role === "citizen") {
       return res.status(403).json({ message: "Unauthorized" });
     }
 
-    // ✅ UPDATED: Get request details including service name
+   
     const requestResult = await pool.query(
       `SELECT r.*, s.name as service_name
        FROM requests r
@@ -150,7 +149,7 @@ export async function updateRequestStatus(req, res) {
       [status, requestId]
     );
 
-    // ✅ UPDATED: Create notification with service name
+    
     let statusMessage = "";
     switch (status) {
       case "approved":
@@ -181,7 +180,7 @@ export async function updateRequestStatus(req, res) {
   }
 }
 
-// Officer: Approve request
+
 export async function approveRequest(req, res) {
   const { id } = req.params;
   const officerId = req.user.id;
@@ -199,7 +198,7 @@ export async function approveRequest(req, res) {
       });
     }
 
-    // ✅ UPDATED: Get service name first
+    
     const requestResult = await pool.query(
       `SELECT r.*, s.name as service_name 
        FROM requests r 
@@ -222,7 +221,7 @@ export async function approveRequest(req, res) {
       [id]
     );
 
-    // ✅ UPDATED: Notification with service name
+ 
     await createNotification(
       request.citizen_id,
       `Your ${request.service_name} request has been approved! ✅`
@@ -238,7 +237,7 @@ export async function approveRequest(req, res) {
   }
 }
 
-// Officer: Reject request
+
 export async function rejectRequest(req, res) {
   const { id } = req.params;
   const officerId = req.user.id;
@@ -256,7 +255,7 @@ export async function rejectRequest(req, res) {
       });
     }
 
-    // ✅ UPDATED: Get service name first
+    
     const requestResult = await pool.query(
       `SELECT r.*, s.name as service_name 
        FROM requests r 
@@ -279,7 +278,7 @@ export async function rejectRequest(req, res) {
       [id]
     );
 
-    // ✅ UPDATED: Notification with service name
+   
     await createNotification(
       request.citizen_id,
       `Your ${request.service_name} request has been rejected. ❌`

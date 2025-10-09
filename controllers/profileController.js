@@ -1,8 +1,8 @@
 import pool from "../config/db.js";
 
-// ================= Get Profile =================
+
 export async function getProfile(req, res) {
-  const userId = req.user.id; // from JWT middleware
+  const userId = req.user.id; 
   try {
     const result = await pool.query(
       `SELECT id, name, email, role, dob, national_id, phone_number, address, department_id, job_title
@@ -22,7 +22,7 @@ export async function getProfile(req, res) {
   }
 }
 
-// ================= Update Profile =================
+
 export async function updateProfile(req, res) {
   const userId = req.user.id;
   const { dob, national_id, phone_number, address, department_id, job_title } =

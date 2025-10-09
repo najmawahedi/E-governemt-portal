@@ -7,7 +7,7 @@ const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, "uploads/"),
   filename: (req, file, cb) => {
     const ext = path.extname(file.originalname);
-    // ✅ FIXED: This creates just the filename
+    
     cb(null, `doc_${req.params.id}_${Date.now()}${ext}`);
   },
 });
@@ -28,8 +28,7 @@ export async function uploadDocument(req, res) {
   try {
     if (!req.file) return res.status(400).json({ message: "No file uploaded" });
 
-    // ✅ FIXED: Save only the filename
-    const fileName = req.file.filename; // This is "doc_1_1759468251395.jpg"
+    const fileName = req.file.filename; 
 
     const result = await pool.query(
       "INSERT INTO documents (request_id, file_path, file_type) VALUES ($1, $2, $3) RETURNING *",

@@ -1,6 +1,6 @@
 import pool from "../config/db.js";
 
-// Get payment page - FIXED VERSION
+
 export async function getPaymentPage(req, res) {
   try {
     const { request_id, citizen_id, name } = req.query;
@@ -16,7 +16,7 @@ export async function getPaymentPage(req, res) {
       return res.status(400).send("Missing required parameters");
     }
 
-    // Get request and service details
+    
     const requestResult = await pool.query(
       `SELECT r.*, s.name as service_name, s.fee, s.description, d.name as department_name
        FROM requests r
@@ -33,7 +33,7 @@ export async function getPaymentPage(req, res) {
 
     const request = requestResult.rows[0];
 
-    // Check if payment already exists for this request
+    
     const existingPayment = await pool.query(
       "SELECT * FROM payments WHERE request_id = $1",
       [request_id]
@@ -65,7 +65,6 @@ export async function getPaymentPage(req, res) {
   }
 }
 
-// Simulate a payment - FIXED VERSION
 export async function makePayment(req, res) {
   try {
     const userId = req.user?.id;
@@ -79,7 +78,6 @@ export async function makePayment(req, res) {
       return res.redirect("/login?error=Please login to make payment");
     }
 
-    // 1️⃣ Check if request exists and belongs to the user
     const requestResult = await pool.query(
       `SELECT r.*, s.name as service_name, s.fee
        FROM requests r
@@ -111,14 +109,12 @@ export async function makePayment(req, res) {
       );
     }
 
-    // 3️⃣ Insert payment record
     const paymentResult = await pool.query(
       `INSERT INTO payments (request_id, amount, status, payment_date)
        VALUES ($1, $2, 'success', CURRENT_TIMESTAMP) RETURNING *`,
       [requestId, amount || request.fee]
     );
 
-    // 4️⃣ Update request status
     await pool.query(
       "UPDATE requests SET status = 'under_review', updated_at = CURRENT_TIMESTAMP WHERE id = $1",
       [requestId]
@@ -126,7 +122,7 @@ export async function makePayment(req, res) {
 
     console.log("✅ Payment successful for request:", requestId);
 
-    // 5️⃣ Redirect to success page instead of rendering
+    
     res.redirect(
       `/payments/success?request_id=${requestId}&payment_id=${paymentResult.rows[0].id}`
     );

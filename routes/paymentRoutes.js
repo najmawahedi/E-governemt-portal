@@ -7,10 +7,9 @@ import {
 
 const router = express.Router();
 
-// Get payment page (no auth required - uses query params)
+
 router.get("/", getPaymentPage);
 
-// Process payment (with auth)
 router.post("/:requestId", authMiddleware, makePayment);
 
 

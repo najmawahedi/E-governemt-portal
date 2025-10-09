@@ -1,12 +1,6 @@
 import pool from "../config/db.js";
 
-// Create notification (helper function, not directly exposed as route)
-// In controllers/notificationsController.js - UPDATE THESE FUNCTIONS:
 
-// Get notifications for logged-in user
-// In controllers/notificationsController.js - FIX THESE FUNCTIONS:
-
-// Get notifications for logged-in user
 export async function getNotifications(req, res) {
   const userId = req.user.id;
 

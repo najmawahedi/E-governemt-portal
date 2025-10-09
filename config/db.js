@@ -1,16 +1,16 @@
 import pkg from "pg";
 import dotenv from "dotenv";
 
-// Load correct .env file
+
 if (process.env.NODE_ENV === 'production') {
   dotenv.config({ path: '.env.production' });
 } else {
-  dotenv.config(); // loads .env
+  dotenv.config(); 
 }
 
 const { Pool } = pkg;
 
-// Handle both connection types
+
 const poolConfig = process.env.DATABASE_URL 
   ? {
       connectionString: process.env.DATABASE_URL,

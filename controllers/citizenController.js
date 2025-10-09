@@ -2,9 +2,6 @@ import pool from "../config/db.js";
 import path from "path";
 import fs from "fs";
 
-// ------------------------
-// DASHBOARD
-// ------------------------
 export async function dashboardPage(req, res) {
   try {
     // Try session first, then fall back to query parameters for compatibility
@@ -36,9 +33,7 @@ export async function dashboardPage(req, res) {
   }
 }
 
-// ------------------------
-// APPLY SERVICE PAGE
-// ------------------------
+
 export async function applyServicePage(req, res) {
   try {
     // Try session first, then fall back to query parameters for compatibility
@@ -77,17 +72,15 @@ export async function applyServicePage(req, res) {
   }
 }
 
-// ------------------------
-// SUBMIT SERVICE REQUEST
-// ------------------------
+
 export async function submitServiceRequest(req, res) {
   try {
-    // Try session first, then fall back to query parameters for compatibility
+    
     let user = req.session.user;
     const { service_id, citizen_id, name, ...extraFields } = req.body;
 
     if (!user) {
-      // Fallback to query parameters for backward compatibility
+      
       if (citizen_id && name) {
         user = { id: citizen_id, name: name, role: "citizen" };
       } else {
@@ -138,7 +131,7 @@ export async function submitServiceRequest(req, res) {
       }
     }
 
-    // Use session-based redirect, but keep query params as fallback
+    
     res.redirect("/citizen/track");
   } catch (err) {
     console.error("❌ Error in submitServiceRequest:", err.message);
@@ -149,16 +142,14 @@ export async function submitServiceRequest(req, res) {
   }
 }
 
-// ------------------------
-// TRACK REQUESTS
-// ------------------------
+
 export async function trackRequests(req, res) {
   try {
-    // Try session first, then fall back to query parameters for compatibility
+   
     let user = req.session.user;
 
     if (!user) {
-      // Fallback to query parameters for backward compatibility
+  
       const { citizen_id, name } = req.query;
       if (citizen_id && name) {
         user = { id: citizen_id, name: name, role: "citizen" };
@@ -194,16 +185,14 @@ export async function trackRequests(req, res) {
   }
 }
 
-// ------------------------
-// NOTIFICATIONS
-// ------------------------
+
 export async function notificationsPage(req, res) {
   try {
-    // Try session first, then fall back to query parameters for compatibility
+    
     let user = req.session.user;
 
     if (!user) {
-      // Fallback to query parameters for backward compatibility
+      
       const { citizen_id, name } = req.query;
       if (citizen_id && name) {
         user = { id: citizen_id, name: name, role: "citizen" };
