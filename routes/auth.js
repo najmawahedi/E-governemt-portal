@@ -10,12 +10,15 @@ router.get("/register", (req, res) => res.render("auth/register"));
 router.post("/register", registerUser);
 
 // Show login page
+
 router.get("/login", (req, res) => {
-  res.render("auth/login", {
-    successMessage: req.query.success
-      ? "Registration successful! Please login."
-      : undefined,
-  });
+  const data = {};
+
+  if (req.query.success) {
+    data.successMessage = "Registration successful! Please login.";
+  }
+
+  res.render("auth/login", data);
 });
 
 // Handle login
