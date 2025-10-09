@@ -95,11 +95,10 @@ app.use("/admin", adminRoutes);
 // =======================
 
 // Home Page
-// Home Page
+
 app.get("/", (req, res) => {
   res.render("home", { 
-    title: "E-Government Services Portal",
-    hideAuthButtons: true // Add this line
+    title: "E-Government Services Portal"
   });
 });
 
